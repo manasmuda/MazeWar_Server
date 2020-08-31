@@ -1,4 +1,7 @@
 ﻿using System;
+using System.IO;
+using UnityEngine;
+using System.Net;
 using System.Net.Sockets;
 using System.Collections.Generic;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -7,6 +10,7 @@ public class NetworkProtocol
 {
     public static SimpleMessage[] Receive(TcpClient client)
     {
+        
         NetworkStream stream = client.GetStream();
         var messages = new List<SimpleMessage>();
         while (stream.DataAvailable)
@@ -14,18 +18,32 @@ public class NetworkProtocol
             try
             {
                 BinaryFormatter formatter = new BinaryFormatter();
+                
                 SimpleMessage message = formatter.Deserialize(stream) as SimpleMessage;
                 messages.Add(message);
             }
             catch (Exception e)
             {
-                System.Console.WriteLine("Error receiving a message: " + e.Message);
-                System.Console.WriteLine("Aborting the rest of the messages");
+                Debug.Log("Error receiving a message: " + e.Message);
+                Debug.Log("Aborting the rest of the messages");
                 break;
             }
         }
 
         return messages.ToArray();
+    }
+
+    public static SimpleMessage[] RecieveUdp()
+    {
+        UdpClient server = new UdpClient();
+        IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
+        byte[] xy = server.Receive(ref anyIP);
+        MemoryStream memory = new MemoryStream(xy);
+        BinaryFormatter formatter = new BinaryFormatter();
+        SimpleMessage msg = formatter.Deserialize(memory) as SimpleMessage;
+        List<SimpleMessage> msgList = new List<SimpleMessage> { };
+        msgList.Add(msg);
+        return msgList.ToArray();
     }
 
     public static void Send(TcpClient client, SimpleMessage message)

@@ -49,6 +49,10 @@ public class NetworkServer
     private List<TcpClient> clients = new List<TcpClient>();
     private List<TcpClient> readyClients = new List<TcpClient>();
     private List<TcpClient> clientsToRemove = new List<TcpClient>();
+    private List<EndPoint> endPoints = new List<EndPoint>();
+
+    private Socket udpServer;
+    private Dictionary<EndPoint, ClientData> udpClients;
 
     private GameLift gamelift = null;
 
@@ -62,6 +66,14 @@ public class NetworkServer
         listener = new TcpListener(IPAddress.Any, this.gamelift.listeningPort);
         Debug.Log("Listening at: " + listener.LocalEndpoint.ToString());
 		listener.Start();
+
+        udpClients = new Dictionary<EndPoint, ClientData>();
+        IPHostEntry host = Dns.Resolve(Dns.GetHostName());
+        IPAddress ip = host.AddressList[0];
+        IPEndPoint endPoint = new IPEndPoint(ip, this.gamelift.listeningPort);
+        udpServer = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+        udpServer.Bind(endPoint);
+        udpServer.Blocking = false;
 	}
 
     // Checks if socket is still connected
@@ -97,6 +109,8 @@ public class NetworkServer
             if(this.clients.Count < 10)
             {
                 this.clients.Add(client);
+                
+
                 return;
             }
             else
@@ -107,7 +121,9 @@ public class NetworkServer
                     SimpleMessage message = new SimpleMessage(MessageType.Reject, "game already full");
                     NetworkProtocol.Send(client, message);
                 }
-                catch (SocketException) { }
+                catch (SocketException) {
+
+                }
             }
 
 		}
@@ -183,6 +199,8 @@ public class NetworkServer
         //Reset the client lists
         this.clients = new List<TcpClient>();
         this.readyClients = new List<TcpClient>();
+        this.endPoints = new List<EndPoint> { };
+        this.udpClients = new Dictionary<EndPoint, ClientData> { };
 	}
 
     //Transmit message to multiple clients
@@ -246,6 +264,7 @@ public class NetworkServer
         if (outcome.Success)
         {
             Debug.Log(":) PLAYER SESSION VALIDATED");
+            
             SimpleMessage message = new SimpleMessage(MessageType.Spawn,"Player Accepted by server");
             this.SendMessage(client, message);
         }
@@ -260,8 +279,12 @@ public class NetworkServer
 	{
         // start the game once all connected clients have requested to start (RETURN key)
         this.readyClients.Add(client);
+        EndPoint sender = client.Client.RemoteEndPoint;
+        this.endPoints.Add(sender);
+        ClientData client1 = new ClientData();
+        this.udpClients.Add(sender, client1);
 
-        if (readyClients.Count >= 2)
+        if (readyClients.Count == 10)
         {
             Debug.Log("Enough clients, let's start the game!");
             this.gamelift.StartGame();
@@ -279,9 +302,12 @@ public class NetworkServer
         TransmitMessage(message, client);
 
         // Disconnect and remove
+        int clientIndex=this.clients.IndexOf(client);
+        this.udpClients.Remove(this.endPoints[clientIndex]);
         this.DisconnectPlayer(client);
         this.clients.Remove(client);
         this.readyClients.Remove(client);
+        this.endPoints.RemoveAt(clientIndex);
     }
 
 	private void DisconnectPlayer(TcpClient client)
