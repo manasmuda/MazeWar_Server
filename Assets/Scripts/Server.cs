@@ -251,7 +251,9 @@ public class NetworkServer
             return true;
         }
         else if (msg.messageType == MessageType.Ready)
+        {
             HandleReady(client);
+        }
 
         return false;
     }
@@ -265,7 +267,7 @@ public class NetworkServer
         {
             Debug.Log(":) PLAYER SESSION VALIDATED");
             
-            SimpleMessage message = new SimpleMessage(MessageType.Spawn,"Player Accepted by server");
+            SimpleMessage message = new SimpleMessage(MessageType.PlayerAccepted,"Player Accepted by server");
             this.SendMessage(client, message);
         }
         else
