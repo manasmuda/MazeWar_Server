@@ -16,6 +16,8 @@ public class BotMovement : MonoBehaviour
     public Transform coinParent;
 
     public Text coinText;
+
+    public bool isSearching= true;
     private void Start()
     {
         agent = this.GetComponent<NavMeshAgent>();
@@ -24,15 +26,27 @@ public class BotMovement : MonoBehaviour
 
     private void Update()
     {
-        if(Coins.Count==0)
+        if(Coins.Count==0||!isSearching)
         {
             agent.SetDestination(spawn.position);
         }
+
         coinText.text = "Coins Collected:" + coinCount + " ";
+
+        if (isSearching)
+        {
+            CheckClosest(Coins);
+        }
+
+        if(Vector3.Distance(transform.position,spawn.transform.position)<=0.5f)
+        {
+            isSearching = true;
+        }
     }
 
     void CheckClosest(List<Transform> _coins)
     {
+
         if (_coins.Count != 0)
         {
             shortest = 0;
@@ -59,7 +73,7 @@ public class BotMovement : MonoBehaviour
         {
             Coins.Add(coinParent.transform.GetChild(i));
         }
-        CheckClosest(Coins);
+        //CheckClosest(Coins);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -67,9 +81,10 @@ public class BotMovement : MonoBehaviour
         if(other.gameObject.CompareTag("Coin"))
         {
             Coins.Remove(other.gameObject.transform);
-            CheckClosest(Coins);
             other.gameObject.SetActive(false);
             coinCount++;
+            isSearching = false;
+            //CheckClosest(Coins);
         }
     }
 }
