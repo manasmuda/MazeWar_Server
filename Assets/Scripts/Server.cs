@@ -3,7 +3,9 @@ using System.Net.Sockets;
 using UnityEngine;
 using Aws.GameLift.Server;
 using System;
+using System.Threading;
 using System.Collections.Generic;
+using System.Text;
 
 // *** MONOBEHAVIOUR TO MANAGE SERVER LOGIC *** //
 
@@ -54,6 +56,8 @@ public class NetworkServer
     private Socket udpServer;
     private Dictionary<EndPoint, ClientData> udpClients;
 
+    private UdpClient udpListener;
+
     private GameLift gamelift = null;
 
     public NetworkServer(GameLift gamelift)
@@ -68,13 +72,75 @@ public class NetworkServer
 		listener.Start();
 
         udpClients = new Dictionary<EndPoint, ClientData>();
-        IPHostEntry host = Dns.Resolve(Dns.GetHostName());
+        /*IPHostEntry host = Dns.Resolve(Dns.GetHostName());
         IPAddress ip = host.AddressList[0];
         IPEndPoint endPoint = new IPEndPoint(ip, this.gamelift.listeningPort);
         udpServer = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
         udpServer.Bind(endPoint);
-        udpServer.Blocking = false;
+        udpServer.Blocking = false;*/
+
+        udpListener = new UdpClient(this.gamelift.listeningPort);
+        udpListener.BeginReceive(UDPRecieveCallBack, null);
+
+        //Thread t1 = new Thread(ListenMsg);
+        //t1.Start();
 	}
+
+    public void ListenMsg()
+    {
+        while (true)
+        {
+            if (udpServer.Available!=0)
+            {
+                byte[] packet = new byte[64];
+                EndPoint sender = new IPEndPoint(IPAddress.Any, 0);
+
+                int rec = udpServer.ReceiveFrom(packet, ref sender);
+                string info = Encoding.Default.GetString(packet);
+
+                Debug.Log("Server received: " + info);
+                Debug.Log(((IPEndPoint)sender).Address);
+
+                if (info[0] == 's')
+                {
+                    this.endPoints.Add(sender);
+                    ClientData client1 = new ClientData();
+                    this.udpClients.Add(sender, client1);
+
+                    UdpMsgPacket msgPacket = new UdpMsgPacket(PacketType.Spawn,"Welcome to UDP");
+                    SendPacket(msgPacket, ((IPEndPoint)sender));
+                }
+            }
+        }
+    }
+
+    private void UDPRecieveCallBack(IAsyncResult result)
+    {
+        try
+        {
+            IPEndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
+            byte[] data = udpListener.EndReceive(result, ref clientEndPoint);
+            udpListener.BeginReceive(UDPRecieveCallBack, null);
+
+            //string msg=Encoding.Default.GetString(data);
+            UdpMsgPacket msgPacket1 = NetworkProtocol.getPacketfromBytes(data);
+
+            if (data.Length < 4)
+            {
+                return;
+            }
+
+            Debug.Log(msgPacket1.message);
+
+            UdpMsgPacket msgPacket = new UdpMsgPacket(PacketType.Spawn, "Welcome to UDP");
+            SendPacket(msgPacket, clientEndPoint);
+
+        }
+        catch(Exception e)
+        {
+            Debug.Log(e);
+        }
+    }
 
     // Checks if socket is still connected
     private bool IsSocketConnected(TcpClient client)
@@ -182,7 +248,9 @@ public class NetworkServer
         }
 
         // Simple test for the the StatsD client: Send current amount of player online
+
         
+
     }
 
     public void DisconnectAll()
@@ -281,10 +349,6 @@ public class NetworkServer
 	{
         // start the game once all connected clients have requested to start (RETURN key)
         this.readyClients.Add(client);
-        EndPoint sender = client.Client.RemoteEndPoint;
-        this.endPoints.Add(sender);
-        ClientData client1 = new ClientData();
-        this.udpClients.Add(sender, client1);
 
         if (readyClients.Count == 10)
         {
@@ -293,7 +357,19 @@ public class NetworkServer
         }
 	}
 
-    
+    void SendPacket(UdpMsgPacket msgPacket, IPEndPoint addr)
+    {
+        try
+        {
+            byte[] arr = NetworkProtocol.getPacketBytes(msgPacket);
+            udpListener.BeginSend(arr, arr.Length,addr,null,null);
+        }
+        catch(Exception e)
+        {
+            Debug.Log(e);
+        }
+    }
+
     private void RemoveClient(TcpClient client)
     {
         //Let the other clients know the player was removed
