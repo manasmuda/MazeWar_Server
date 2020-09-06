@@ -31,17 +31,19 @@ public class CoinCollectorBot : MonoBehaviour
             agent.SetDestination(spawn.position);
         }
 
-        coinText.text = "Coins Collected:" + coinCount + " ";
+        //coinText.text = "Coins Collected:" + coinCount + " ";
 
         if (isSearching)
         {
             CheckClosest(Coins);
         }
 
-        if(Vector3.Distance(transform.position,spawn.transform.position)<=0.5f)
+        if(Vector3.Distance(transform.position,spawn.transform.position)<=3f)
         {
+            
             isSearching = true;
         }
+        Debug.Log("xyz:"+Vector3.Distance(transform.position, spawn.transform.position));
     }
 
     void CheckClosest(List<Transform> _coins)
