@@ -1,3 +1,8 @@
 Library/
 Logs/
 Temp/
+MazeWarServer_Data/
+*.x86_64
+LinuxPlayer_s.debug
+UnityPlayer.so
+UnityPlayer_s.debug
