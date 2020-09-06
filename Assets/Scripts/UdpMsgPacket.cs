@@ -7,7 +7,10 @@ using System.Runtime.Serialization.Formatters.Binary;
 [Serializable]
 public enum PacketType
 {
-    Spawn
+    UdpConnect,
+    Spawn,
+    Shoot,
+
 };
 
 [Serializable]
