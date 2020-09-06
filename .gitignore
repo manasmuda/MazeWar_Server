@@ -1,8 +1,16 @@
 Library/
 Logs/
 Temp/
+.vs/
+obj/
+*.csproj
+*.sln
 MazeWarServer_Data/
 *.x86_64
 LinuxPlayer_s.debug
 UnityPlayer.so
+<<<<<<< HEAD
 UnityPlayer_s.debug
+=======
+UnityPlayer_s.debug
+>>>>>>> 67303eee83fbf61555a5eca7c0e99bcd0b444f02
