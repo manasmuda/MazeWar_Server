@@ -17,6 +17,8 @@ public class CoinCollectorBot : MonoBehaviour
 
     public Text coinText;
 
+    public Vector3 dest;
+
     public bool isSearching= true;
     private void Start()
     {
@@ -43,7 +45,7 @@ public class CoinCollectorBot : MonoBehaviour
             
             isSearching = true;
         }
-        Debug.Log("xyz:"+Vector3.Distance(transform.position, spawn.transform.position));
+        //Debug.Log("xyz:"+Vector3.Distance(transform.position, spawn.transform.position));
     }
 
     void CheckClosest(List<Transform> _coins)
@@ -64,6 +66,7 @@ public class CoinCollectorBot : MonoBehaviour
             }
 
             agent.SetDestination(Coins[shortest].position);
+            dest = Coins[shortest].position;
         }
     }
 

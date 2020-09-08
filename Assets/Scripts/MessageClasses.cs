@@ -13,6 +13,8 @@ public enum MessageType
     PlayerLeft,
     GameStarted,
     GameReady,
+    PlayerData,
+    TeamData
 };
 
 
@@ -27,6 +29,7 @@ public class SimpleMessage
         this.listData = new List<object> { };
         this.dictData = new Dictionary<string, object> { };
         this.listdictdata = new List<Dictionary<string, object>> { };
+        this.time = DateTime.UtcNow.Millisecond;
     }
 
     public MessageType messageType { get; set; }
@@ -34,6 +37,7 @@ public class SimpleMessage
     public int clientId { get; set; }
     public int time { get; set; }
     public string playerId { get; set; }
+    public string team { get; set; }
     public List<object> listData { get; set; }
     public Dictionary<string, object> dictData { get; set; }
     public List<Dictionary<string, object>> listdictdata { get; set; }
@@ -41,6 +45,8 @@ public class SimpleMessage
     public string playerName { get; set; }
     public int iw { get; set; }
     public int ih { get; set; }
+    public int intData { get; set; }
+    public string stringData { get; set; }
 
     // As we are using one generic message for simplicity, we always have all possible data here
     // You would likely want to use different classes for different message types

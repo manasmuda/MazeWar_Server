@@ -16,17 +16,29 @@ public class Server : MonoBehaviour
 
     NetworkServer server;
 
+    private int tick = 0;
+    private float tickRate = 0.2f;
+    private float tickCounter = 0f;
+
+    private GameLift gameliftServer;
+
     // Start is called before the first frame update
     void Start()
     {
-        var gameliftServer = GameObject.FindObjectOfType<GameLift>();
+        gameliftServer = GameObject.FindObjectOfType<GameLift>();
         server = new NetworkServer(gameliftServer);    
     }
 
     // Update is called once per frame
     void Update()
     {
-        server.Update();
+        this.tickCounter += Time.deltaTime;
+        if (this.tickCounter >= tickRate)
+        {
+            this.tickCounter = 0.0f;
+            server.Update();
+        }
+        
 
         // Go through any messages to process (on the game world)
         foreach(SimpleMessage msg in messagesToProcess)
@@ -39,6 +51,13 @@ public class Server : MonoBehaviour
     public void DisconnectAll()
     {
         this.server.DisconnectAll();
+    }
+
+    public void ResetServer()
+    {
+        server = new NetworkServer(gameliftServer);
+        tick = 0;
+        tickCounter = 0f;
     }
 
 }
@@ -54,7 +73,7 @@ public class NetworkServer
     private List<EndPoint> endPoints = new List<EndPoint>();
 
     private Socket udpServer;
-    private Dictionary<EndPoint, ClientData> udpClients;
+    private Dictionary<EndPoint, string> udpEndPoints;
 
     private UdpClient udpListener;
 
@@ -71,7 +90,7 @@ public class NetworkServer
         Debug.Log("Listening at: " + listener.LocalEndpoint.ToString());
 		listener.Start();
 
-        udpClients = new Dictionary<EndPoint, ClientData>();
+        udpEndPoints = new Dictionary<EndPoint, string>();
         /*IPHostEntry host = Dns.Resolve(Dns.GetHostName());
         IPAddress ip = host.AddressList[0];
         IPEndPoint endPoint = new IPEndPoint(ip, this.gamelift.listeningPort);
@@ -86,7 +105,7 @@ public class NetworkServer
         //t1.Start();
 	}
 
-    public void ListenMsg()
+    /*public void ListenMsg()
     {
         while (true)
         {
@@ -104,7 +123,7 @@ public class NetworkServer
                 if (info[0] == 's')
                 {
                     this.endPoints.Add(sender);
-                    ClientData client1 = new ClientData();
+                    ClientData client1 = new ClientData("");
                     this.udpClients.Add(sender, client1);
 
                     UdpMsgPacket msgPacket = new UdpMsgPacket(PacketType.Spawn,"Welcome to UDP");
@@ -112,7 +131,7 @@ public class NetworkServer
                 }
             }
         }
-    }
+    }*/
 
     private void UDPRecieveCallBack(IAsyncResult result)
     {
@@ -120,20 +139,22 @@ public class NetworkServer
         {
             IPEndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
             byte[] data = udpListener.EndReceive(result, ref clientEndPoint);
-            udpListener.BeginReceive(UDPRecieveCallBack, null);
+            UdpMsgPacket msgPacket = NetworkProtocol.getPacketfromBytes(data);
 
+
+            udpListener.BeginReceive(UDPRecieveCallBack, null);
             //string msg=Encoding.Default.GetString(data);
-            UdpMsgPacket msgPacket1 = NetworkProtocol.getPacketfromBytes(data);
+            HandleUdpMsg(msgPacket, clientEndPoint);            
 
             if (data.Length < 4)
             {
                 return;
             }
 
-            Debug.Log(msgPacket1.message);
+            Debug.Log(msgPacket.message);
 
-            UdpMsgPacket msgPacket = new UdpMsgPacket(PacketType.Spawn, "Welcome to UDP");
-            SendPacket(msgPacket, clientEndPoint);
+            //UdpMsgPacket msgPacket = new UdpMsgPacket(PacketType.Spawn, "Welcome to UDP");
+            //SendPacket(msgPacket, clientEndPoint);
 
         }
         catch(Exception e)
@@ -268,7 +289,7 @@ public class NetworkServer
         this.clients = new List<TcpClient>();
         this.readyClients = new List<TcpClient>();
         this.endPoints = new List<EndPoint> { };
-        this.udpClients = new Dictionary<EndPoint, ClientData> { };
+        this.udpEndPoints = new Dictionary<EndPoint, string> { };
 	}
 
     //Transmit message to multiple clients
@@ -326,6 +347,24 @@ public class NetworkServer
         return false;
     }
 
+    private void HandleUdpMsg(UdpMsgPacket packet,IPEndPoint clientEndPoint)
+    {
+        if (packet.type == PacketType.UDPConnect)
+        {
+            HandleUdpConnect(clientEndPoint,packet.playerId);
+        }
+    }
+
+    private void HandleUdpConnect(IPEndPoint clientEndPoint,string playerId)
+    {
+        if (!udpEndPoints.ContainsKey(clientEndPoint))
+        {
+            udpEndPoints.Add(clientEndPoint, playerId);
+        }
+    }
+
+
+
 	private void HandleConnect(int playerIdx, string json, TcpClient client)
 	{
         // respond with the player id and the current state.
@@ -349,6 +388,37 @@ public class NetworkServer
 	{
         // start the game once all connected clients have requested to start (RETURN key)
         this.readyClients.Add(client);
+
+        string team = "blue";
+        // get client details from lambda like team, level, gadgets
+
+        //temp code start
+        if (readyClients.Count % 2 == 0)
+        {
+            team = "blue";
+        }
+        else
+        {
+            team = "red";
+        }
+        //end
+
+        if (team == "blue")
+        {
+            string id=GameData.blueTeamData.AddNewClient();
+            SimpleMessage msg = new SimpleMessage(MessageType.PlayerData, "");
+            msg.playerId = id;
+            msg.team = team;
+            SendMessage(client, msg);
+        }
+        else if (team == "red")
+        {
+            string id = GameData.redTeamData.AddNewClient();
+            SimpleMessage msg = new SimpleMessage(MessageType.PlayerData, "");
+            msg.playerId = id;
+            msg.team = team;
+            SendMessage(client, msg);
+        }
 
         if (readyClients.Count == 10)
         {
@@ -381,7 +451,7 @@ public class NetworkServer
 
         // Disconnect and remove
         int clientIndex=this.clients.IndexOf(client);
-        this.udpClients.Remove(this.endPoints[clientIndex]);
+        this.udpEndPoints.Remove(this.endPoints[clientIndex]);
         this.DisconnectPlayer(client);
         this.clients.Remove(client);
         this.readyClients.Remove(client);
@@ -405,4 +475,9 @@ public class NetworkServer
             Debug.Log("Failed to disconnect player: " + e.Message);
         }
 	}
+
+    public void ResetNetworkServer()
+    {
+
+    }
 }
