@@ -26,7 +26,7 @@ public class Server : MonoBehaviour
     void Start()
     {
         gameliftServer = GameObject.FindObjectOfType<GameLift>();
-        server = new NetworkServer(gameliftServer);    
+        server = new NetworkServer(gameliftServer,this);    
     }
 
     // Update is called once per frame
@@ -36,6 +36,7 @@ public class Server : MonoBehaviour
         if (this.tickCounter >= tickRate)
         {
             this.tickCounter = 0.0f;
+            tick++;
             server.Update();
         }
         
@@ -46,6 +47,12 @@ public class Server : MonoBehaviour
             // NOTE: We should spawn players and set positions also on server side here and validate actions. For now we just pass this data to clients
         }
         messagesToProcess.Clear();
+    }
+
+    public void StartTick()
+    {
+        tick = 0;
+        tickCounter = 0f;
     }
 
     public void DisconnectAll()
@@ -78,10 +85,12 @@ public class NetworkServer
     private UdpClient udpListener;
 
     private GameLift gamelift = null;
+    private Server server;
 
-    public NetworkServer(GameLift gamelift)
+    public NetworkServer(GameLift gamelift,Server server)
 	{
         this.gamelift = gamelift;
+        this.server = server;
 
         //Start the TCP server
         int port = this.gamelift.listeningPort;
@@ -420,9 +429,12 @@ public class NetworkServer
             SendMessage(client, msg);
         }
 
-        if (readyClients.Count == 10)
+        if (readyClients.Count == 2) //players2 for temp
         {
             Debug.Log("Enough clients, let's start the game!");
+            SimpleMessage msg = new SimpleMessage(MessageType.GameStarted, "");
+            TransmitMessage(msg);
+            server.StartTick();
             this.gamelift.StartGame();
         }
 	}
