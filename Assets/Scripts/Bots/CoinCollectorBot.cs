@@ -5,33 +5,52 @@ using UnityEngine.AI;
 using UnityEngine.UI;
 public class CoinCollectorBot : MonoBehaviour
 {
+
+    public static CoinCollectorBot coinCollectorBot_instance;
+
     NavMeshAgent agent;
     
     int shortest;
-    private int coinCount=0;
+    //private int coinCount=0;
 
     public Transform spawn;
     public List<Transform> Coins = new List<Transform>();
 
     public Transform coinParent;
 
-    public Text coinText;
+    //public Text coinText;
 
     public bool isSearching= true;
+
+    public bool isChecking=false;
+    
     private void Start()
     {
         agent = this.GetComponent<NavMeshAgent>();
-        CheckCoins();
+        //CheckCoins();
+        
+    }
+
+    private void Awake()
+    {
+        if(coinCollectorBot_instance== null)
+        {
+            coinCollectorBot_instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     private void Update()
     {
-        if(Coins.Count==0||!isSearching)
+
+        if (Coins.Count==0||!isSearching)
         {
             agent.SetDestination(spawn.position);
         }
 
-        //coinText.text = "Coins Collected:" + coinCount + " ";
 
         if (isSearching)
         {
@@ -43,7 +62,13 @@ public class CoinCollectorBot : MonoBehaviour
             
             isSearching = true;
         }
-        Debug.Log("xyz:"+Vector3.Distance(transform.position, spawn.transform.position));
+
+        if (isChecking)
+        {
+            CheckCoins();
+
+        }
+
     }
 
     void CheckClosest(List<Transform> _coins)
@@ -64,18 +89,23 @@ public class CoinCollectorBot : MonoBehaviour
             }
 
             agent.SetDestination(Coins[shortest].position);
+
         }
     }
 
     public void CheckCoins()
     {
+        int i;
         //when coin is instantiated it needs to be a child of coinParent
-
-        for (int i = 0; i < coinParent.transform.childCount; i++)
+        for (i = 0; i < coinParent.transform.childCount; i++)
         {
             Coins.Add(coinParent.transform.GetChild(i));
+            Debug.Log(i);
+            
         }
-        //CheckClosest(Coins);
+            isChecking = false;
+        
+
     }
 
     private void OnTriggerEnter(Collider other)
@@ -84,9 +114,7 @@ public class CoinCollectorBot : MonoBehaviour
         {
             Coins.Remove(other.gameObject.transform);
             other.gameObject.SetActive(false);
-            coinCount++;
             isSearching = false;
-            //CheckClosest(Coins);
         }
     }
 }
