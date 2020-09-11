@@ -5,6 +5,7 @@ using Aws.GameLift.Server;
 using System;
 using System.Threading;
 using System.Collections.Generic;
+using System.Collections;
 using System.Text;
 
 // *** MONOBEHAVIOUR TO MANAGE SERVER LOGIC *** //
@@ -53,6 +54,19 @@ public class Server : MonoBehaviour
     {
         tick = 0;
         tickCounter = 0f;
+    }
+
+    public void GameReady()
+    {
+        StartCoroutine(StartLobbyTimer());
+    }
+
+    IEnumerator StartLobbyTimer()
+    {
+        yield return new WaitForSeconds(10);
+
+        StartTick();
+        server.StartGame();
     }
 
     public void DisconnectAll()
@@ -352,6 +366,10 @@ public class NetworkServer
         {
             HandleReady(client);
         }
+        else if (msg.messageType == MessageType.PlayerGameReady)
+        {
+            HandlePlayerGameReady(client,msg);
+        }
 
         return false;
     }
@@ -432,12 +450,27 @@ public class NetworkServer
         if (readyClients.Count == 2) //players2 for temp
         {
             Debug.Log("Enough clients, let's start the game!");
-            SimpleMessage msg = new SimpleMessage(MessageType.GameStarted, "");
+            MazeCell[,] maze=MazeGenerator.generateMaze();
+            List<object> list=MazeGenerator.ToObjectList(maze);
+            SimpleMessage msg = new SimpleMessage(MessageType.GameReady, "");
+            msg.listData = list;
             TransmitMessage(msg);
-            server.StartTick();
-            this.gamelift.StartGame();
+            //server.StartTick();
+            this.gamelift.ReadyGame();
+            server.GameReady();
         }
 	}
+
+    void HandlePlayerGameReady(TcpClient client,SimpleMessage msg)
+    {
+
+    }
+
+    public void StartGame()
+    {
+        SimpleMessage msg = new SimpleMessage(MessageType.GameStarted, "");
+        TransmitMessage(msg);
+    } 
 
     void SendPacket(UdpMsgPacket msgPacket, IPEndPoint addr)
     {

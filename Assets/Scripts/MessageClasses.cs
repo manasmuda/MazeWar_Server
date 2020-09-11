@@ -14,7 +14,8 @@ public enum MessageType
     GameStarted,
     GameReady,
     PlayerData,
-    TeamData
+    TeamData,
+    PlayerGameReady
 };
 
 

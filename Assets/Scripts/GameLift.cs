@@ -14,6 +14,7 @@ public class GameLift : MonoBehaviour
 
     // Game state
     private bool gameStarted = false;
+    private bool gameReady = false;
     private string gameSessionId;
     public string GetGameSessionID() { return gameSessionId; }
 
@@ -128,6 +129,7 @@ public class GameLift : MonoBehaviour
         GameObject.FindObjectOfType<Server>().DisconnectAll();
         GameLiftServerAPI.TerminateGameSession();
         this.gameStarted = false;
+        this.gameReady = false;
     }
 
     public void StartGame()
@@ -136,16 +138,26 @@ public class GameLift : MonoBehaviour
         this.gameStarted = true;
     }
 
+    public void ReadyGame()
+    {
+        Debug.Log("Game Ready");
+        this.gameReady = true;
+    }
+
     public bool GameStarted()
     {
         return this.gameStarted;
     }
 
+    public bool GameReady()
+    {
+        return this.gameReady;
+    }
     // Called by Unity once a frame
     public void Update()
     {
         // Wait for players to join for 5 seconds max
-        if (this.gameSessionInfoReceived && !this.gameStarted)
+        if (this.gameSessionInfoReceived && !this.gameReady)
         {
             this.waitingForPlayerTime += Time.deltaTime;
             if (this.waitingForPlayerTime > 60.0f)
