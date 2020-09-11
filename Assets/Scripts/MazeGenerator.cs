@@ -14,14 +14,16 @@ public class MazeGenerator
     private static int currentRow = 0;
     private static int currentColumn=0;
 
+    private static int cellSize = 20;
+
     public static MazeCell[,] generateMaze()
     {
-        randMaze = new MazeCell[20,20];
-        visited = new bool[20,20];
+        randMaze = new MazeCell[cellSize,cellSize];
+        visited = new bool[cellSize,cellSize];
 
-        for(int i = 0; i < 20; i++)
+        for(int i = 0; i < cellSize; i++)
         {
-            for(int j = 0; j < 20; j++)
+            for(int j = 0; j < cellSize; j++)
             {
                 randMaze[i,j] = new MazeCell(i,j);
             }
@@ -43,9 +45,9 @@ public class MazeGenerator
     private static void SearchPath()
     {
         mazeComplete = true;
-        for(int i = 0; i < 20; i++)
+        for(int i = 0; i < cellSize; i++)
         {
-            for(int j = 0; j < 20; j++)
+            for(int j = 0; j < cellSize; j++)
             {
                 if(!visited[i,j] && HasAdjVisited(i,j))
                 {
@@ -125,7 +127,7 @@ public class MazeGenerator
         }
 
         // Look one row down (south) if we're the second-to-last row (or less)
-        if (row < 19 && visited[row + 1, column])
+        if (row < cellSize-1 && visited[row + 1, column])
         {
             visitedCells++;
         }
@@ -137,7 +139,7 @@ public class MazeGenerator
         }
 
         // Look one row right (east) if we're the second-to-last column (or less)
-        if (column < 19 && visited[row, column + 1])
+        if (column < cellSize-1 && visited[row, column + 1])
         {
             visitedCells++;
         }
@@ -161,7 +163,7 @@ public class MazeGenerator
                 randMaze[row - 1, column].southWall=false;
                 wallDestroyed = true;
             }
-            else if (direction == 2 && row < 19 && visited[row + 1, column])
+            else if (direction == 2 && row < cellSize-1 && visited[row + 1, column])
             {
                 randMaze[row, column].southWall=false;
                 randMaze[row + 1, column].northWall=false;
@@ -173,7 +175,7 @@ public class MazeGenerator
                 randMaze[row, column - 1].eastWall=false;
                 wallDestroyed = true;
             }
-            else if (direction == 4 && column < 19 && visited[row, column + 1])
+            else if (direction == 4 && column < cellSize-1 && visited[row, column + 1])
             {
                 randMaze[row, column].eastWall=false;
                 randMaze[row, column + 1].westWall=false;
@@ -192,7 +194,7 @@ public class MazeGenerator
             availableRoutes++;
         }
 
-        if (row < 19 && !visited[row + 1, column] )
+        if (row < cellSize-1 && !visited[row + 1, column] )
         {
             availableRoutes++;
         }
@@ -202,7 +204,7 @@ public class MazeGenerator
             availableRoutes++;
         }
 
-        if (column < 19 && !visited[row, column + 1] )
+        if (column < cellSize-1 && !visited[row, column + 1] )
         {
             availableRoutes++;
         }
@@ -212,7 +214,7 @@ public class MazeGenerator
 
     private static bool CellIsAvailable(int row, int column)
     {
-        if (row >= 0 && row < 20 && column >= 0 && column < 20 && !visited[row, column])
+        if (row >= 0 && row < cellSize && column >= 0 && column < cellSize && !visited[row, column])
         {
             return true;
         }
@@ -220,6 +222,37 @@ public class MazeGenerator
         {
             return false;
         }
+    }
+
+    public static List<object> ToObjectList(MazeCell[,] mazeCells)
+    {
+        List<object> list = new List<object> { };
+        for (int i = 0; i < cellSize; i++)
+        {
+            for(int j = 0; j < cellSize; j++)
+            {
+                string[] temparr = {"1","1","1","1"};
+                if (!mazeCells[i, j].northWall)
+                {
+                    temparr[0] = "0";
+                }
+                if (!mazeCells[i, j].southWall)
+                {
+                    temparr[1] = "0";
+                }
+                if (!mazeCells[i, j].eastWall)
+                {
+                    temparr[2] = "0";
+                }
+                if (!mazeCells[i, j].westWall)
+                {
+                    temparr[3] = "0";
+                }
+                string temp=string.Join(",", temparr);
+                list.Add(((object)temp));
+            }
+        }
+        return list;
     }
 
 }
