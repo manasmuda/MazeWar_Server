@@ -62,7 +62,7 @@ public class Server : MonoBehaviour
 
     public void ResetServer()
     {
-        server = new NetworkServer(gameliftServer);
+        server = new NetworkServer(gameliftServer,this);
         tick = 0;
         tickCounter = 0f;
     }
