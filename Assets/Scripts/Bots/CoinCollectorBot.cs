@@ -1,51 +1,79 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
 public class CoinCollectorBot : MonoBehaviour
 {
-    NavMeshAgent agent;
-    
-    int shortest;
-    private int coinCount=0;
 
-    public Transform spawn;
-    public List<Transform> Coins = new List<Transform>();
+    public static CoinCollectorBot coinCollectorBot_instance;
+
+    Animator anim;
+
+    NavMeshAgent agent;
+
+    int shortest;
+    //private int coinCount=0;
 
     public Transform coinParent;
+    public Transform spawn;
 
-    public Text coinText;
+    public List<Transform> Coins = new List<Transform>();
 
-    public Vector3 dest;
+    public bool isSearching = true;
+    public bool isChecking = false;
 
-    public bool isSearching= true;
+    bool isStanding;
+
     private void Start()
     {
         agent = this.GetComponent<NavMeshAgent>();
-        CheckCoins();
+        anim = this.GetComponent<Animator>();
+
+    }
+
+    private void Awake()
+    {
+        if (coinCollectorBot_instance == null)
+        {
+            coinCollectorBot_instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     private void Update()
     {
-        if(Coins.Count==0||!isSearching)
+
+        if (isStanding)
+        {
+            return;
+        }
+
+        if (Coins.Count == 0 || !isSearching)
         {
             agent.SetDestination(spawn.position);
         }
 
-        //coinText.text = "Coins Collected:" + coinCount + " ";
 
         if (isSearching)
         {
             CheckClosest(Coins);
         }
 
-        if(Vector3.Distance(transform.position,spawn.transform.position)<=3f)
+        if (Vector3.Distance(transform.position, spawn.transform.position) <= 3f)
         {
-            
             isSearching = true;
         }
-        //Debug.Log("xyz:"+Vector3.Distance(transform.position, spawn.transform.position));
+
+        if (isChecking)
+        {
+            CheckCoins();
+        }
+
+        Debug.Log(agent.pathStatus);
+
     }
 
     void CheckClosest(List<Transform> _coins)
@@ -66,30 +94,43 @@ public class CoinCollectorBot : MonoBehaviour
             }
 
             agent.SetDestination(Coins[shortest].position);
-            dest = Coins[shortest].position;
+
         }
     }
 
     public void CheckCoins()
     {
+        int i;
         //when coin is instantiated it needs to be a child of coinParent
-
-        for (int i = 0; i < coinParent.transform.childCount; i++)
+        for (i = 0; i < coinParent.transform.childCount; i++)
         {
             Coins.Add(coinParent.transform.GetChild(i));
+            Debug.Log(i);
+
         }
-        //CheckClosest(Coins);
+        isChecking = false;
+
+
+    }
+
+    void ResetState()
+    {
+        isStanding = false;
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.gameObject.CompareTag("Coin"))
+        if (other.gameObject.CompareTag("Coin"))
         {
+
+            anim.SetTrigger("isCollecting");
             Coins.Remove(other.gameObject.transform);
             other.gameObject.SetActive(false);
-            coinCount++;
             isSearching = false;
-            //CheckClosest(Coins);
+            isStanding = true;
+            Invoke("ResetState", 1f);
         }
     }
+
+
 }
