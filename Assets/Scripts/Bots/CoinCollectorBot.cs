@@ -8,26 +8,27 @@ public class CoinCollectorBot : MonoBehaviour
 
     public static CoinCollectorBot coinCollectorBot_instance;
 
+    Animator anim;
+
     NavMeshAgent agent;
     
     int shortest;
     //private int coinCount=0;
 
+    public Transform coinParent;
     public Transform spawn;
+
     public List<Transform> Coins = new List<Transform>();
 
-    public Transform coinParent;
-
-    //public Text coinText;
-
     public bool isSearching= true;
-
     public bool isChecking=false;
+
+    bool isStanding;
     
     private void Start()
     {
         agent = this.GetComponent<NavMeshAgent>();
-        //CheckCoins();
+        anim = this.GetComponent<Animator>();
         
     }
 
@@ -46,6 +47,11 @@ public class CoinCollectorBot : MonoBehaviour
     private void Update()
     {
 
+        if(isStanding)
+        {
+            return;
+        }
+
         if (Coins.Count==0||!isSearching)
         {
             agent.SetDestination(spawn.position);
@@ -59,15 +65,15 @@ public class CoinCollectorBot : MonoBehaviour
 
         if(Vector3.Distance(transform.position,spawn.transform.position)<=3f)
         {
-            
             isSearching = true;
         }
 
         if (isChecking)
         {
             CheckCoins();
-
         }
+
+        Debug.Log(agent.pathStatus);
 
     }
 
@@ -108,13 +114,24 @@ public class CoinCollectorBot : MonoBehaviour
 
     }
 
+    void ResetState()
+    {
+        isStanding = false;
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if(other.gameObject.CompareTag("Coin"))
         {
+
+            anim.SetTrigger("isCollecting");
             Coins.Remove(other.gameObject.transform);
             other.gameObject.SetActive(false);
             isSearching = false;
+            isStanding = true;
+            Invoke("ResetState", 1f);
         }
     }
+
+    
 }
