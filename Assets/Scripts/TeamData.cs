@@ -24,7 +24,8 @@ public class TeamData
 
     public string AddNewClient()
     {
-        string newId = RandomString(10);
+        //string newId = RandomString(10);
+        string newId = "123";
         ClientData clientData = new ClientData(newId);
         clientsData.Add(newId, clientData);
         return newId;

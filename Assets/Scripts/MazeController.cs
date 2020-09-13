@@ -9,8 +9,7 @@ public class MazeController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        MazeCell[,] maze = MazeGenerator.generateMaze();
-        InstantiateMaze(maze);
+       
     }
 
     // Update is called once per frame

@@ -36,6 +36,7 @@ public class Server : MonoBehaviour
         this.tickCounter += Time.deltaTime;
         if (this.tickCounter >= tickRate)
         {
+            Debug.Log("Update");
             this.tickCounter = 0.0f;
             tick++;
             server.Update();
@@ -167,6 +168,7 @@ public class NetworkServer
 
             udpListener.BeginReceive(UDPRecieveCallBack, null);
             //string msg=Encoding.Default.GetString(data);
+            Debug.Log("Recieved UDP msg:"+msgPacket.type);
             HandleUdpMsg(msgPacket, clientEndPoint);            
 
             if (data.Length < 4)
@@ -429,25 +431,28 @@ public class NetworkServer
             team = "red";
         }
         //end
-
+        Debug.Log("Team Decided");
         if (team == "blue")
         {
+            Debug.Log("blue");
             string id=GameData.blueTeamData.AddNewClient();
             SimpleMessage msg = new SimpleMessage(MessageType.PlayerData, "");
             msg.playerId = id;
             msg.team = team;
-            SendMessage(client, msg);
+            this.SendMessage(client, msg);
         }
         else if (team == "red")
         {
-            string id = GameData.redTeamData.AddNewClient();
+            Debug.Log("red");
+           // string id = GameData.redTeamData.AddNewClient();
+            Debug.Log("client added to game data");
             SimpleMessage msg = new SimpleMessage(MessageType.PlayerData, "");
-            msg.playerId = id;
+            msg.playerId = "123";
             msg.team = team;
-            SendMessage(client, msg);
+            this.SendMessage(client, msg);
         }
-
-        if (readyClients.Count == 2) //players2 for temp
+        Debug.Log("Player Data Sent");
+        if (readyClients.Count == 1) //players2 for temp
         {
             Debug.Log("Enough clients, let's start the game!");
             MazeCell[,] maze=MazeGenerator.generateMaze();
