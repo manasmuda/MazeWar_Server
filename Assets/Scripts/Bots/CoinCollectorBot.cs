@@ -72,7 +72,6 @@ public class CoinCollectorBot : MonoBehaviour
             CheckCoins();
         }
 
-        Debug.Log(agent.pathStatus);
 
     }
 
@@ -105,7 +104,7 @@ public class CoinCollectorBot : MonoBehaviour
         for (i = 0; i < coinParent.transform.childCount; i++)
         {
             Coins.Add(coinParent.transform.GetChild(i));
-            Debug.Log(i);
+            //Debug.Log(i);
 
         }
         isChecking = false;
@@ -122,13 +121,14 @@ public class CoinCollectorBot : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Coin"))
         {
+            //need to make set active slower
 
-            anim.SetTrigger("isCollecting");
+            anim.SetTrigger("collect");
             Coins.Remove(other.gameObject.transform);
             other.gameObject.SetActive(false);
             isSearching = false;
             isStanding = true;
-            Invoke("ResetState", 1f);
+            Invoke("ResetState", 2f);
         }
     }
 
