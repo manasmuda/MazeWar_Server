@@ -10,29 +10,26 @@ public class TeamData
     private static readonly System.Random _random = new System.Random();
 
     public string team;
-    private Dictionary<IPEndPoint, string> endPointsPlayerId;
-    private Dictionary<string, ClientData> clientsData;
+    public Dictionary<string, ClientData> clientsData;
 
-    private int storedCoins;
+    public int storedCoins;
 
     public TeamData(string team)
     {
         this.team = team;
         this.storedCoins = 0;
+        clientsData = new Dictionary<string, ClientData> { };
     }
 
 
-    public string AddNewClient()
+    public string AddNewClient(TcpClient tcpClient)
     {
         string newId = RandomString(10);
-        ClientData clientData = new ClientData(newId);
+        //Debug.Log("Adding new cliernt");
+        //string newId = "123";
+        ClientData clientData = new ClientData(newId,tcpClient);
         clientsData.Add(newId, clientData);
         return newId;
-    }
-
-    public void SetEndPoints(IPEndPoint endPoint,string id)
-    {
-        endPointsPlayerId.Add(endPoint, id);
     }
 
     public static string RandomString(int size)

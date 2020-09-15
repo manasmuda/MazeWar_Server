@@ -33,11 +33,79 @@ public class MazeGenerator
 
         while (!mazeComplete)
         {
-            Debug.Log(currentRow);
-            Debug.Log(currentColumn);
+           // Debug.Log(currentRow);
+            //Debug.Log(currentColumn);
             CreatePath();
             SearchPath();
         }
+        Debug.Log("Basic Maze Created");
+        for(int i = 0; i < cellSize; i++)
+        {
+            for(int j = 0; j < cellSize; j++)
+            {
+                int direction = Random.Range(1, 10);
+                if (direction > 4)
+                    continue;
+                if(direction==1 && i > 0)
+                {
+                    randMaze[i, j].northWall = false;
+                    randMaze[i - 1, j].southWall = false;
+                }
+                else if(direction==2 && i < cellSize-1)
+                {
+                    randMaze[i, j].southWall = false;
+                    randMaze[i + 1, j].northWall = false;
+                }
+                else if(direction==3 && j < cellSize-1)
+                {
+                    randMaze[i, j].eastWall = false;
+                    randMaze[i, j + 1].westWall = false;
+                }
+                else if(direction==4 && j > 0)
+                {
+                    randMaze[i, j].westWall = false;
+                    randMaze[i, j - 1].eastWall = false;
+                }
+
+            }
+        }
+        Debug.Log("Modified Maze Created");
+        bool redBase = false;
+        bool blueBase = false;
+        for(int i = 0; i < cellSize-1; i++)
+        {
+            if (!redBase)
+            {
+                if (!randMaze[0, i].eastWall && !randMaze[0, i + 1].westWall)
+                {
+                    redBase = true;
+                }
+            }
+            if (!blueBase)
+            {
+                if (!randMaze[cellSize-1, i].eastWall && !randMaze[cellSize-1, i + 1].westWall)
+                {
+                    blueBase = true;
+                }
+            }
+            if(redBase && blueBase)
+            {
+                break;
+            }
+        }
+        Debug.Log("Maze Base Checked");
+        if (!redBase)
+        {
+            randMaze[0, cellSize - 2].eastWall = false;
+            randMaze[0, cellSize - 1].westWall = false;
+        }
+        if (!blueBase)
+        {
+            randMaze[cellSize-1, 0].eastWall = false;
+            randMaze[cellSize-1, 1].westWall = false;
+        }
+
+        Debug.Log("Maze Generation finished");
 
         return randMaze;
     }
