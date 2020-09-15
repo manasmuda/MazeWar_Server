@@ -74,7 +74,6 @@ public class GameLift : MonoBehaviour
 
                     //Set the game session tag (CloudWatch dimension) for custom metrics
                     string justSessionId = this.gameSessionId.Split('/')[2];
-                    
 
                    
                 },

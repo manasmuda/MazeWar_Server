@@ -6,6 +6,8 @@ public class MazeController : MonoBehaviour
 {
     [SerializeField]
     private GameObject mazeObject;
+
+    private MazeCell[,] maze = new MazeCell[20, 20];
     // Start is called before the first frame update
     void Start()
     {
@@ -18,8 +20,9 @@ public class MazeController : MonoBehaviour
         
     }
 
-    void InstantiateMaze(MazeCell[,] maze)
+    public void InstantiateMaze(MazeCell[,] maze)
     {
+        this.maze = maze;
         for (int i = 0; i < 20; i++)
         {
             for (int j = 0; j < 20; j++)

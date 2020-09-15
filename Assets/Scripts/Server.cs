@@ -17,11 +17,13 @@ public class Server : MonoBehaviour
 
     NetworkServer server;
 
-    private int tick = 0;
+    public int tick = 0;
     private float tickRate = 0.2f;
     private float tickCounter = 0f;
 
     private GameLift gameliftServer;
+
+    public GameObject characterPrefab;
 
     // Start is called before the first frame update
     void Start()
@@ -37,9 +39,13 @@ public class Server : MonoBehaviour
         if (this.tickCounter >= tickRate)
         {
             Debug.Log("Update");
+            if(gameliftServer.GameStarted())
+                CharacterSyncUpdate();
             this.tickCounter = 0.0f;
             tick++;
             server.Update();
+            if(gameliftServer.GameStarted())
+                CreateGameState();
         }
         
 
@@ -49,6 +55,18 @@ public class Server : MonoBehaviour
             // NOTE: We should spawn players and set positions also on server side here and validate actions. For now we just pass this data to clients
         }
         messagesToProcess.Clear();
+    }
+
+    public void CharacterSyncUpdate()
+    {
+        for (int i = 0; i < GameHistory.recentState.redTeamState.Count; i++)
+        {
+            GameData.redTeamData.clientsData[GameHistory.recentState.redTeamState[i].playerId].character.GetComponent<CharacterSyncScript>().NewPlayerState(GameHistory.recentState.redTeamState[i]);
+        }
+        for (int i = 0; i < GameHistory.recentState.blueTeamState.Count; i++)
+        {
+            GameData.blueTeamData.clientsData[GameHistory.recentState.blueTeamState[i].playerId].character.GetComponent<CharacterSyncScript>().NewPlayerState(GameHistory.recentState.blueTeamState[i]);
+        }
     }
 
     public void StartTick()
@@ -62,12 +80,59 @@ public class Server : MonoBehaviour
         StartCoroutine(StartLobbyTimer());
     }
 
+    public void CreateGameState()
+    {
+        GameState state = new GameState();
+        GameState newState=GameHistory.GetPredictedState(tick);
+        // send this game state to all clients.
+        //GameHistory.AddGameState(newState, tick);
+    }
+
     IEnumerator StartLobbyTimer()
     {
         yield return new WaitForSeconds(10);
 
         StartTick();
+        InitializeFirstGameState();
         server.StartGame();
+    }
+
+    void InitializeFirstGameState()
+    {
+        GameState state = new GameState();
+        state.tick = 0;
+        state.stateType = 0;
+        foreach(KeyValuePair<string,ClientData> data in GameData.blueTeamData.clientsData)
+        {
+            ClientState clientState = new ClientState();
+            clientState.position[0] = data.Value.character.transform.position.x;
+            clientState.position[1] = data.Value.character.transform.position.y;
+            clientState.position[2] = data.Value.character.transform.position.z;
+            clientState.angle[0] = data.Value.character.transform.rotation.x;
+            clientState.angle[1] = data.Value.character.transform.rotation.y;
+            clientState.angle[2] = data.Value.character.transform.rotation.z;
+            clientState.playerId = data.Key;
+            clientState.team = "blue";
+            clientState.tick = 0;
+            clientState.stateType = 0;
+            state.blueTeamState.Add(clientState);
+        }
+        foreach (KeyValuePair<string, ClientData> data in GameData.redTeamData.clientsData)
+        {
+            ClientState clientState = new ClientState();
+            clientState.position[0] = data.Value.character.transform.position.x;
+            clientState.position[1] = data.Value.character.transform.position.y;
+            clientState.position[2] = data.Value.character.transform.position.z;
+            clientState.angle[0] = data.Value.character.transform.rotation.x;
+            clientState.angle[1] = data.Value.character.transform.rotation.y;
+            clientState.angle[2] = data.Value.character.transform.rotation.z;
+            clientState.playerId = data.Key;
+            clientState.team = "red";
+            clientState.tick = 0;
+            clientState.stateType = 0;
+            state.redTeamState.Add(clientState);
+        }
+        GameHistory.AddGameState(state, 0);
     }
 
     public void DisconnectAll()
@@ -380,19 +445,59 @@ public class NetworkServer
     {
         if (packet.type == PacketType.UDPConnect)
         {
-            HandleUdpConnect(clientEndPoint,packet.playerId);
+            HandleUdpConnect(clientEndPoint,packet.playerId,packet.team);
+        }
+        if (packet.type == PacketType.ClientState)
+        {
+            HandleClientState(packet);
         }
     }
 
-    private void HandleUdpConnect(IPEndPoint clientEndPoint,string playerId)
+    private void HandleUdpConnect(IPEndPoint clientEndPoint,string playerId,string team)
     {
         if (!udpEndPoints.ContainsKey(clientEndPoint))
         {
             udpEndPoints.Add(clientEndPoint, playerId);
+            if (team == "red")
+            {
+                GameData.redTeamData.clientsData[playerId].udpEndPoint = clientEndPoint;
+            }
+            else if (team == "blue")
+            {
+                GameData.redTeamData.clientsData[playerId].udpEndPoint = clientEndPoint;
+            }
         }
     }
 
+    private void HandleGameState(UdpMsgPacket packet)
+    {
 
+    }
+
+    private void HandleClientState(UdpMsgPacket packet)
+    {
+        //if(packet.clientState.tick>)
+        int us = GameHistory.CheckClientState(packet.clientState);
+        /*if (us==0)
+        {
+            if (packet.team == "red")
+            {
+                GameData.redTeamData.clientsData[packet.playerId].character.GetComponent<CharacterSyncScript>().AddNewPlayerPos(new Vector3(packet.clientState.position[0], packet.clientState.position[1], packet.clientState.position[2]), Quaternion.identity);
+            }
+            else
+            {
+                GameData.blueTeamData.clientsData[packet.playerId].character.GetComponent<CharacterSyncScript>().AddNewPlayerPos(new Vector3(packet.clientState.position[0], packet.clientState.position[1], packet.clientState.position[2]), Quaternion.identity);
+            }
+        }*/
+        if (us == 1)
+        {
+            //just updated client state from predicted to fixed
+        }
+        else if (us == 2)
+        {
+
+        }
+    }
 
 	private void HandleConnect(int playerIdx, string json, TcpClient client)
 	{
@@ -435,7 +540,7 @@ public class NetworkServer
         if (team == "blue")
         {
             Debug.Log("blue");
-            string id=GameData.blueTeamData.AddNewClient();
+            string id=GameData.blueTeamData.AddNewClient(client);
             SimpleMessage msg = new SimpleMessage(MessageType.PlayerData, "");
             msg.playerId = id;
             msg.team = team;
@@ -444,10 +549,10 @@ public class NetworkServer
         else if (team == "red")
         {
             Debug.Log("red");
-           // string id = GameData.redTeamData.AddNewClient();
+            string id = GameData.redTeamData.AddNewClient(client);
             Debug.Log("client added to game data");
             SimpleMessage msg = new SimpleMessage(MessageType.PlayerData, "");
-            msg.playerId = "123";
+            msg.playerId = id;
             msg.team = team;
             this.SendMessage(client, msg);
         }
@@ -456,6 +561,11 @@ public class NetworkServer
         {
             Debug.Log("Enough clients, let's start the game!");
             MazeCell[,] maze=MazeGenerator.generateMaze();
+            Debug.Log("Maze Data Generated");
+            GameData.maze = maze;
+            Debug.Log("Maze Data Assigned");
+            GameObject.Find("MazeController").GetComponent<MazeController>().InstantiateMaze(maze);
+            Debug.Log("Maze Created");
             List<object> list=MazeGenerator.ToObjectList(maze);
             SimpleMessage msg = new SimpleMessage(MessageType.GameReady, "");
             msg.listData = list;
@@ -463,8 +573,46 @@ public class NetworkServer
             //server.StartTick();
             this.gamelift.ReadyGame();
             server.GameReady();
+            //Initialize all team positions, team bases, container positions
+            InitializePlayerGameData();
         }
-	}
+    }
+
+    void InitializePlayerGameData()
+    {
+        Debug.Log("InitializePlayerGameData Called");
+        GameData.InitializeSpawns();
+        Debug.Log("Spawn Initialized");
+        foreach(KeyValuePair<string,ClientData> clientData in GameData.blueTeamData.clientsData)
+        {
+            SimpleMessage msg = new SimpleMessage(MessageType.PlayerGameData);
+            msg.playerId = clientData.Key;
+            float[] sp=SpawnManager.GetSpawnPos("blue");
+            msg.floatArrData = sp;
+            TcpClient tcpClient=clientData.Value.tcpClient;
+            GameObject character=GameObject.Instantiate(server.characterPrefab, new Vector3(sp[0], sp[1], sp[2]), Quaternion.identity);
+            clientData.Value.character = character;
+            GameData.blueTeamData.clientsData[clientData.Value.playerId] = clientData.Value;
+            SendMessage(tcpClient, msg);
+        }
+        Debug.Log("blue team spawn message sent");
+        foreach (KeyValuePair<string, ClientData> clientData in GameData.redTeamData.clientsData)
+        {
+            Debug.Log("red team client");
+            SimpleMessage msg = new SimpleMessage(MessageType.PlayerGameData);
+            msg.playerId = clientData.Key;
+            float[] sp = SpawnManager.GetSpawnPos("red");
+            Debug.Log("Player spawn created");                                                                 
+            msg.floatArrData = sp;
+            TcpClient tcpClient = clientData.Value.tcpClient;
+            GameObject character = GameObject.Instantiate(server.characterPrefab, new Vector3(sp[0], sp[1], sp[2]), Quaternion.identity);
+            //clientData.Value.character = character;
+            GameData.redTeamData.clientsData[clientData.Value.playerId].character=character;
+            SendMessage(tcpClient, msg);
+            Debug.Log("Player SpawnMessage Sent");
+        }
+        Debug.Log("red team spawn message sent");
+    }
 
     void HandlePlayerGameReady(TcpClient client,SimpleMessage msg)
     {
