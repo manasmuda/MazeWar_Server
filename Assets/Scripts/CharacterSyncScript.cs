@@ -6,6 +6,7 @@ public class CharacterSyncScript : MonoBehaviour
 {
 
     public Queue<IEnumerator> movers = new Queue<IEnumerator>();
+    public int count;
 
     public bool isMoving = false;
 
@@ -20,7 +21,11 @@ public class CharacterSyncScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if (movers.Count > 0)
+        {
+            isMoving = true;
+        }
+        count=movers.Count;
     }
 
     public void NewPlayerState(ClientState state)
@@ -47,7 +52,7 @@ public class CharacterSyncScript : MonoBehaviour
         }
     }
 
-    public IEnumerator MoveOverSpeed(Vector3 end, float speed=500)
+    public IEnumerator MoveOverSpeed(Vector3 end, float speed=300)
     {
         // speed should be 1 unit per second
         while (transform.position != end)
@@ -61,6 +66,7 @@ public class CharacterSyncScript : MonoBehaviour
         }
         else
         {
+            Debug.Log("stopped");
             isMoving = false;
         }
     }

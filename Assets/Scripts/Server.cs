@@ -193,7 +193,7 @@ public class NetworkServer
         udpServer.Bind(endPoint);
         udpServer.Blocking = false;*/
 
-        udpListener = new UdpClient(this.gamelift.listeningPort);
+        udpListener = new UdpClient(this.gamelift.listeningPort+20);
         udpListener.BeginReceive(UDPRecieveCallBack, null);
 
         //Thread t1 = new Thread(ListenMsg);
@@ -469,6 +469,8 @@ public class NetworkServer
             {
                 GameData.redTeamData.clientsData[playerId].udpEndPoint = clientEndPoint;
             }
+            UdpMsgPacket packet = new UdpMsgPacket(PacketType.UDPConnect, "Success", "", "");
+            SendPacket(packet, clientEndPoint);
         }
     }
 
