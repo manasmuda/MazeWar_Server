@@ -74,7 +74,6 @@ public class GameLift : MonoBehaviour
 
                     //Set the game session tag (CloudWatch dimension) for custom metrics
                     string justSessionId = this.gameSessionId.Split('/')[2];
-                    
 
                    
                 },
@@ -128,6 +127,7 @@ public class GameLift : MonoBehaviour
         Debug.Log("Terminating Game Session");
         GameObject.FindObjectOfType<Server>().DisconnectAll();
         GameLiftServerAPI.TerminateGameSession();
+        this.gameSessionInfoReceived = false;
         this.gameStarted = false;
         this.gameReady = false;
     }
@@ -157,9 +157,11 @@ public class GameLift : MonoBehaviour
     public void Update()
     {
         // Wait for players to join for 5 seconds max
+        
         if (this.gameSessionInfoReceived && !this.gameReady)
         {
             this.waitingForPlayerTime += Time.deltaTime;
+            //Debug.Log(waitingForPlayerTime);
             if (this.waitingForPlayerTime > 60.0f)
             {
                 Debug.Log("No players in 5 seconds from starting the game, terminate game session");
