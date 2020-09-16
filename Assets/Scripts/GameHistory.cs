@@ -17,16 +17,18 @@ public class GameHistory
     {
         if (tick > recentTick)
         {
-            AddGameState(new GameState(recentState), tick);
+            Debug.Log("Prediction creation started");
+            GameState state=new GameState(recentState);
+            state.tick = tick;
+            AddGameState(state, tick);
+            Debug.Log("Prediction State Created");
         }
         return recentState;
     }
     
     public static void AddGameState(GameState state,int tick)
     {
-        if (tick > recentTick)
-        {
-            if (size != gameStates.Count)
+            if (size == gameStates.Count)
             {
                 gameStates.RemoveFirst();
                 gameStateTicks.RemoveFirst();
@@ -35,18 +37,20 @@ public class GameHistory
             gameStateTicks.AddLast(tick);
             recentState = state;
             recentTick = tick;
-        }
+            Debug.Log("Game State Added");
 
     }
 
     public static int CheckClientState(ClientState state)
     {
+        Debug.Log(state.tick + ":" + recentTick);
         if (state.tick < recentTick - size)
         {
             return -1;
         }
         else if (state.tick == recentTick)
         {
+            Debug.Log("tick matched");
             if (state.team == "blue")
             {
                 for (int i = 0; i < recentState.blueTeamState.Count; i++)
@@ -69,6 +73,7 @@ public class GameHistory
             }
             else
             {
+                Debug.Log("team matched");
                 for (int i = 0; i < recentState.redTeamState.Count; i++)
                 {
                     if (recentState.redTeamState[i].playerId == state.playerId)

@@ -16,7 +16,8 @@ public enum MessageType
     PlayerData,
     PlayerGameData,
     TeamData,
-    PlayerGameReady
+    PlayerGameReady,
+    ServerTick
 };
 
 

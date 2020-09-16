@@ -52,15 +52,15 @@ public class ClientState
 
     public bool CompareState(ClientState state)
     {
-        if (Math.Abs(position[0] - state.position[0]) > 0.3)
+        if (Math.Abs(position[0] - state.position[0]) > 0.1)
         {
             return true;
         }
-        if (Math.Abs(position[1] - state.position[1]) > 0.3)
+        if (Math.Abs(position[1] - state.position[1]) > 0.1)
         {
             return true;
         }
-        if (Math.Abs(position[2] - state.position[2]) > 0.3)
+        if (Math.Abs(position[2] - state.position[2]) > 0.1)
         {
             return true;
         }

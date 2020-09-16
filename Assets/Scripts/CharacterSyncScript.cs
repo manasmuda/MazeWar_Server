@@ -9,10 +9,12 @@ public class CharacterSyncScript : MonoBehaviour
 
     public bool isMoving = false;
 
+    public Vector3 lastPos;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        lastPos = transform.position;
     }
 
     // Update is called once per frame
@@ -23,12 +25,23 @@ public class CharacterSyncScript : MonoBehaviour
 
     public void NewPlayerState(ClientState state)
     {
-
+        AddNewMove(new Vector3(state.position[0], state.position[1], state.position[2]));
     }
 
     public void AddNewMove(Vector3 end)
     {
-        if (movers.Count > 10)
+        float dist = Vector3.Distance(lastPos,end);
+        if (dist > 0.1 && dist<5)
+        {
+            if (movers.Count == 5)
+            {
+                movers.Dequeue();
+            }
+            IEnumerator newMover = MoveOverSpeed(end);
+            movers.Enqueue(newMover);
+            lastPos = new Vector3(end.x,end.y,end.z);
+        }
+        else if (dist >= 5)
         {
             TransportPlayer(end);
         }
@@ -56,5 +69,6 @@ public class CharacterSyncScript : MonoBehaviour
     {
         movers = new Queue<IEnumerator>();
         transform.position = end;
+        isMoving = false;
     }
 }

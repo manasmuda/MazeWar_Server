@@ -44,6 +44,8 @@ public class Server : MonoBehaviour
             }
             this.tickCounter = 0.0f;
             tick++;
+            if (tick % 30 == 0)
+                server.SendServerTick();
             if(gameliftServer.GameStarted())
                 CreateGameState();
             server.Update();
@@ -94,8 +96,9 @@ public class Server : MonoBehaviour
     {
         yield return new WaitForSeconds(10);
 
-        StartTick();
         InitializeFirstGameState();
+        StartTick();
+        gameliftServer.StartGame();
         server.StartGame();
     }
 
@@ -135,6 +138,7 @@ public class Server : MonoBehaviour
             state.redTeamState.Add(clientState);
         }
         GameHistory.AddGameState(state, 0);
+        Debug.Log("Initial State Added");
     }
 
     public void DisconnectAll()
@@ -476,6 +480,7 @@ public class NetworkServer
     private void HandleClientState(UdpMsgPacket packet)
     {
         //if(packet.clientState.tick>)
+        Debug.Log(packet.clientState.tick + "," + server.tick);
         int us = GameHistory.CheckClientState(packet.clientState);
         Debug.Log(us);
         Debug.Log(packet.clientState.position[0] + "," + packet.clientState.position[1] + "," + packet.clientState.position[2]);
@@ -569,6 +574,13 @@ public class NetworkServer
             //Initialize all team positions, team bases, container positions
             InitializePlayerGameData();
         }
+    }
+
+    public void SendServerTick()
+    {
+        SimpleMessage msg = new SimpleMessage(MessageType.ServerTick);
+        msg.intData = server.tick;
+        TransmitMessage(msg);
     }
 
     void InitializePlayerGameData()
