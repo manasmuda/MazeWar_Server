@@ -39,13 +39,14 @@ public class Server : MonoBehaviour
         if (this.tickCounter >= tickRate)
         {
             Debug.Log("Update");
-            if(gameliftServer.GameStarted())
+            if (gameliftServer.GameStarted() && tick>0) {
                 CharacterSyncUpdate();
+            }
             this.tickCounter = 0.0f;
             tick++;
-            server.Update();
             if(gameliftServer.GameStarted())
                 CreateGameState();
+            server.Update();
         }
         
 
@@ -61,6 +62,7 @@ public class Server : MonoBehaviour
     {
         for (int i = 0; i < GameHistory.recentState.redTeamState.Count; i++)
         {
+            Debug.Log("Positon Update:"+GameHistory.recentState.redTeamState[i].position[0]+"+"+GameHistory.recentState.redTeamState[i].position[1] + "+"+ GameHistory.recentState.redTeamState[i].position[2]);
             GameData.redTeamData.clientsData[GameHistory.recentState.redTeamState[i].playerId].character.GetComponent<CharacterSyncScript>().NewPlayerState(GameHistory.recentState.redTeamState[i]);
         }
         for (int i = 0; i < GameHistory.recentState.blueTeamState.Count; i++)
@@ -359,9 +361,6 @@ public class NetworkServer
         }
 
         // Simple test for the the StatsD client: Send current amount of player online
-
-        
-
     }
 
     public void DisconnectAll()
@@ -478,6 +477,8 @@ public class NetworkServer
     {
         //if(packet.clientState.tick>)
         int us = GameHistory.CheckClientState(packet.clientState);
+        Debug.Log(us);
+        Debug.Log(packet.clientState.position[0] + "," + packet.clientState.position[1] + "," + packet.clientState.position[2]);
         /*if (us==0)
         {
             if (packet.team == "red")
@@ -489,14 +490,6 @@ public class NetworkServer
                 GameData.blueTeamData.clientsData[packet.playerId].character.GetComponent<CharacterSyncScript>().AddNewPlayerPos(new Vector3(packet.clientState.position[0], packet.clientState.position[1], packet.clientState.position[2]), Quaternion.identity);
             }
         }*/
-        if (us == 1)
-        {
-            //just updated client state from predicted to fixed
-        }
-        else if (us == 2)
-        {
-
-        }
     }
 
 	private void HandleConnect(int playerIdx, string json, TcpClient client)

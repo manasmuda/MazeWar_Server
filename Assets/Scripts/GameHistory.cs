@@ -15,6 +15,10 @@ public class GameHistory
 
     public static GameState GetPredictedState(int tick)
     {
+        if (tick > recentTick)
+        {
+            AddGameState(new GameState(recentState), tick);
+        }
         return recentState;
     }
     
@@ -25,9 +29,14 @@ public class GameHistory
             if (size != gameStates.Count)
             {
                 gameStates.RemoveFirst();
+                gameStateTicks.RemoveFirst();
             }
-            gameStates.AddFirst(state);
+            gameStates.AddLast(state);
+            gameStateTicks.AddLast(tick);
+            recentState = state;
+            recentTick = tick;
         }
+
     }
 
     public static int CheckClientState(ClientState state)
@@ -36,9 +45,99 @@ public class GameHistory
         {
             return -1;
         }
+        else if (state.tick == recentTick)
+        {
+            if (state.team == "blue")
+            {
+                for (int i = 0; i < recentState.blueTeamState.Count; i++)
+                {
+                    if (recentState.blueTeamState[i].playerId == state.playerId)
+                    {
+                        recentState.blueTeamState[i] = new ClientState(state);
+                        return 2;
+                        /*if (recentState.blueTeamState[i].CompareState(state))
+                        {
+                            recentState.blueTeamState[i] = new ClientState(state);
+                            return 2;
+                        }
+                        else
+                        {
+                            return 1;
+                        }*/
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < recentState.redTeamState.Count; i++)
+                {
+                    if (recentState.redTeamState[i].playerId == state.playerId)
+                    {
+                        recentState.redTeamState[i] = new ClientState(state);
+                        return 2;
+                        /*if (recentState.redTeamState[i].CompareState(state))
+                        {
+                            recentState.redTeamState[i] = new ClientState(state);
+                            return 2;
+                        }
+                        else
+                        {
+                            return 1;
+                        }*/
+                    }
+                }
+            }
+
+        }
         else
         {
-            return -2;
+            LinkedListNode<GameState> gsn = gameStates.First;
+            LinkedListNode<int> gtn = gameStateTicks.First;
+            while(gsn!=null && gtn != null)
+            {
+                if (gtn.Value == state.tick)
+                {
+                    if (state.team == "blue")
+                    {
+                        for (int i = 0; i < gsn.Value.blueTeamState.Count; i++)
+                        {
+                            if (gsn.Value.blueTeamState[i].playerId == state.playerId)
+                            {
+                                if(gsn.Value.blueTeamState[i].CompareState(state)){
+                                    gameStates.Last.Value.blueTeamState[i] = new ClientState(state);
+                                    return 3;
+                                }
+                                else
+                                {
+                                    return 4;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 0; i < gsn.Value.redTeamState.Count; i++)
+                        {
+                            if (gsn.Value.redTeamState[i].playerId == state.playerId)
+                            {
+                                if (gsn.Value.redTeamState[i].CompareState(state))
+                                {
+                                    gameStates.Last.Value.redTeamState[i] = new ClientState(state);
+                                    return 3;
+                                }
+                                else
+                                {
+                                    return 4;
+                                }
+                            }
+                        }
+                    }
+                    
+                }
+                gsn = gsn.Next;
+                gtn = gtn.Next;
+            }
         }
+        return 5;
     }
 }
