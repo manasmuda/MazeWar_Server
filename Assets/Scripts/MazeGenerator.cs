@@ -33,8 +33,6 @@ public class MazeGenerator
 
         while (!mazeComplete)
         {
-           // Debug.Log(currentRow);
-            //Debug.Log(currentColumn);
             CreatePath();
             SearchPath();
         }

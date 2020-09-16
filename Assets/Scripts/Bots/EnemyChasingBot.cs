@@ -40,8 +40,6 @@ public class EnemyChasingBot : MonoBehaviour
 
     void Update()
     {
-        
-
         switch (currentState)
         {
             case CurrentState.checking:
@@ -53,26 +51,20 @@ public class EnemyChasingBot : MonoBehaviour
                 Patrol();
                 break;
             case CurrentState.chasing:
+                CancelInvoke();
                 agent.SetDestination(playerPos.position);
                 break;
             case CurrentState.shooting:
-                //agent.transform.LookAt(new Vector3(targetLookAt.position.z,transform.position.y,targetLookAt.position.z));
                 agent.transform.LookAt(new Vector3(targetLookAt.position.x,0f,targetLookAt.position.z));
+                ShootEnemy();
                 
                 break;
             default:
                 break;
         }
 
+        
 
-        //if (hit.collider.tag=="Player")
-        //{
-        //    isVisible = true;
-        //}
-        //else
-        //{
-        //    isVisible = false;
-        //}
     }
 
     void CheckPlayer()
@@ -99,10 +91,6 @@ public class EnemyChasingBot : MonoBehaviour
             if(hit.collider!=null)
             {
                 agent.updateRotation = false;
-                //float wallAngle = Mathf.Atan2(hit.normal.y, hit.normal.x) * Mathf.Rad2Deg-180;
-                //float wallAngle = Vector3.Angle(hit.normal, -ray.direction);
-                //Debug.Log(wallAngle);
-                //transform.eulerAngles = new Vector3(transform.eulerAngles.x, wallAngle, transform.localEulerAngles.z);
                 transform.rotation = Quaternion.LookRotation(hit.normal);
                 currentState = CurrentState.checking;
             }
@@ -136,7 +124,21 @@ public class EnemyChasingBot : MonoBehaviour
 
     public void ShootEnemy()
     {
-        InvokeRepeating("ShootPlayer", 0.4f,0.4f);
+        currentState = CurrentState.shooting;
+        RaycastHit hit2;
+
+        Debug.DrawRay(transform.position +transform.up, transform.forward*6f,Color.red);
+        if (Physics.Raycast(transform.position + transform.up, transform.forward, out hit2, 6f))
+        {
+            //Debug.Log(hit2.collider.gameObject.name);
+
+            if (hit2.collider.CompareTag("Player"))
+            {
+                
+                InvokeRepeating("ShootPlayer", 0.4f, 0.4f);
+            }
+        }
+        
     }
     public void ShootPlayer()
     {
@@ -145,9 +147,5 @@ public class EnemyChasingBot : MonoBehaviour
         Destroy(temp, 1.5f);
     }
 
-    private void OnDrawGizmos()
-    {
-        Debug.DrawRay(transform.position, transform.forward*4f, Color.red);
-    }
-
+  
 }
