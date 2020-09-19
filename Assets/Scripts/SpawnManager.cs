@@ -28,7 +28,7 @@ public class SpawnManager {
             int i = 19;
             int j = blueBases[p];
             x[0] = 6 * j - 57;
-            x[1] = 2.0f;
+            x[1] = 0.5f;
             x[2]= 57 - 6 * i;
         }
         else
@@ -37,7 +37,7 @@ public class SpawnManager {
             int i = 0;
             int j = redBases[p];
             x[0] = 6 * j - 57;
-            x[1] = 2.0f;
+            x[1] = 0.5f;
             x[2] = 57 - 6 * i;
         }
         return x;

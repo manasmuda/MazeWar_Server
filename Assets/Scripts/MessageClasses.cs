@@ -54,10 +54,8 @@ public class SimpleMessage
     public int[] intArrData { get; set; }
     public float[] floatArrData { get; set; }
     public string[] stringArrData { get; set; }
-
-
-
-
+    public Dictionary<string,float[]> redSpanData { get; set; }
+    public Dictionary<string,float[]> blueSpanData { get; set; }
 
     // As we are using one generic message for simplicity, we always have all possible data here
     // You would likely want to use different classes for different message types
