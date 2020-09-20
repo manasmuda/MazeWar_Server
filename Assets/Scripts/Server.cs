@@ -72,11 +72,12 @@ public class Server : MonoBehaviour
             //Debug.Log("Positon Update:" + GameHistory.recentState.redTeamState[i].position[0] + "+" + GameHistory.recentState.redTeamState[i].position[1] + "+" + GameHistory.recentState.redTeamState[i].position[2]);
             GameData.redTeamData.clientsData[tempPlayerId].character.GetComponent<CharacterSyncScript>().NewPlayerState(GameHistory.recentState.redTeamState[i]);
             server.SendPacket(packet,GameData.redTeamData.clientsData[tempPlayerId].udpEndPoint);
+            Debug.Log("Sync Packet Sent");
         }
         for (int i = 0; i < GameHistory.recentState.blueTeamState.Count; i++)
         {
-            string tempPlayerId = GameHistory.recentState.redTeamState[i].playerId;
-            GameData.blueTeamData.clientsData[GameHistory.recentState.blueTeamState[i].playerId].character.GetComponent<CharacterSyncScript>().NewPlayerState(GameHistory.recentState.blueTeamState[i]);
+            string tempPlayerId = GameHistory.recentState.blueTeamState[i].playerId;
+            GameData.blueTeamData.clientsData[tempPlayerId].character.GetComponent<CharacterSyncScript>().NewPlayerState(GameHistory.recentState.blueTeamState[i]);
             server.SendPacket(packet, GameData.blueTeamData.clientsData[tempPlayerId].udpEndPoint);
         }
     }
@@ -488,13 +489,16 @@ public class NetworkServer
         {
             udpEndPoints.Add(clientEndPoint, playerId);
             endPoints.Add(clientEndPoint);
+            Debug.Log("Team:"+team);
             if (team == "red")
             {
+                Debug.Log("end point setting");
                 GameData.redTeamData.clientsData[playerId].udpEndPoint = clientEndPoint;
+                Debug.Log("end point set");
             }
             else if (team == "blue")
             {
-                GameData.redTeamData.clientsData[playerId].udpEndPoint = clientEndPoint;
+                GameData.blueTeamData.clientsData[playerId].udpEndPoint = clientEndPoint;
             }
             UdpMsgPacket packet = new UdpMsgPacket(PacketType.UDPConnect, "Success", "", "");
             SendPacket(packet, clientEndPoint);
@@ -509,7 +513,7 @@ public class NetworkServer
     private void HandleClientState(UdpMsgPacket packet)
     {
         //if(packet.clientState.tick>)
-        Debug.Log(packet.clientState.tick + "," + server.tick);
+        //Debug.Log(packet.clientState.tick + "," + server.tick);
         int us = GameHistory.CheckClientState(packet.clientState);
         Debug.Log(us);
         Debug.Log(packet.clientState.position[0] + "," + packet.clientState.position[1] + "," + packet.clientState.position[2]);
@@ -567,7 +571,8 @@ public class NetworkServer
         if (team == "blue")
         {
             Debug.Log("blue");
-            string id=GameData.blueTeamData.AddNewClient(client);
+            string id = GameData.blueTeamData.AddNewClient(client);
+            Debug.Log("blue client added to game data");
             SimpleMessage msg = new SimpleMessage(MessageType.PlayerData, "");
             msg.playerId = id;
             msg.team = team;
@@ -577,7 +582,7 @@ public class NetworkServer
         {
             Debug.Log("red");
             string id = GameData.redTeamData.AddNewClient(client);
-            Debug.Log("client added to game data");
+            Debug.Log("red client added to game data");
             SimpleMessage msg = new SimpleMessage(MessageType.PlayerData, "");
             msg.playerId = id;
             msg.team = team;
@@ -628,8 +633,8 @@ public class NetworkServer
             //msg.floatArrData = sp;
             TcpClient tcpClient=clientData.Value.tcpClient;
             GameObject character=GameObject.Instantiate(server.characterPrefab, new Vector3(sp[0], sp[1], sp[2]), Quaternion.identity);
-            clientData.Value.character = character;
-            GameData.blueTeamData.clientsData[clientData.Value.playerId] = clientData.Value;
+            //clientData.Value.character = character;
+            GameData.blueTeamData.clientsData[clientData.Value.playerId].character = character;
             //SendMessage(tcpClient, msg);
             blueList.Add(clientData.Key,sp);
             Debug.Log("Player SpawnMessage Sent");

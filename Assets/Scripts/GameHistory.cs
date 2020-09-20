@@ -48,7 +48,7 @@ public class GameHistory
         {
             return -1;
         }
-        else if (state.tick == recentTick)
+        else if (state.tick >= recentTick)
         {
             Debug.Log("tick matched");
             if (state.team == "blue")

@@ -19,7 +19,7 @@ public class SpawnManager {
             }
             if (!GameData.maze[19, i].eastWall && !GameData.maze[19, i + 1].westWall)
             {
-                redBases.Add(i + 1);
+                blueBases.Add(i);
             }
         }
         if (team == "blue")

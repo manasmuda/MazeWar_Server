@@ -59,10 +59,6 @@ public class CharacterSyncScript : MonoBehaviour
             }
     }
 
-    public void AddNewAngle(Quaternion angle)
-    {
-
-    }
 
     public IEnumerator MoveOverSpeed(Vector3 end,Vector3 fang, float speed=200)
     {

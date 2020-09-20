@@ -23,6 +23,7 @@ public class UdpMsgPacket
         this.message = message;
         this.time = DateTime.UtcNow.Millisecond;
         this.playerId = playerId;
+        this.team = team;
     }
 
     public PacketType type { get; set; }
