@@ -45,7 +45,7 @@ public class Server : MonoBehaviour
             }
             this.tickCounter = 0.0f;
             tick++;
-            if (tick % 30 == 0)
+            if (tick % 5 == 0 && gameliftServer.GameStarted())
                 server.SendServerTick();
             if (gameliftServer.GameStarted())
                 CreateGameState();
@@ -575,6 +575,7 @@ public class NetworkServer
             Debug.Log("blue client added to game data");
             SimpleMessage msg = new SimpleMessage(MessageType.PlayerData, "");
             msg.playerId = id;
+            Debug.Log("blue:"+id);
             msg.team = team;
             this.SendMessage(client, msg);
         }
@@ -586,6 +587,7 @@ public class NetworkServer
             SimpleMessage msg = new SimpleMessage(MessageType.PlayerData, "");
             msg.playerId = id;
             msg.team = team;
+            Debug.Log("red:" + id);
             this.SendMessage(client, msg);
         }
         Debug.Log("Player Data Sent");
