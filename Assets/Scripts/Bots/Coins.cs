@@ -4,12 +4,11 @@ using UnityEngine;
 
 public class Coins : MonoBehaviour
 {
-    public Transform coinParent;
+    //public Transform coinParent;
     void Start()
     {
-        transform.parent = coinParent.transform;
+        transform.parent = GameObject.Find("CoinParent").transform;
         CoinCollectorBot.coinCollectorBot_instance.isChecking=true;
     }
 
-   
 }

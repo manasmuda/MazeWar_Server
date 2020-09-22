@@ -7,6 +7,7 @@ public class GameData
     public static int cellSize = 20;
     public static MazeCell[,] maze = new MazeCell[20, 20];
 
+
     public static TeamData blueTeamData = new TeamData("blue");
     public static TeamData redTeamData = new TeamData("red");
 
@@ -29,6 +30,7 @@ public class GameData
                 bluepoints.Add(i);
             }
         }
+
         int redPos = Random.Range(0, redpoints.Count - 1);
         int bluePos = Random.Range(0, bluepoints.Count - 1);
 

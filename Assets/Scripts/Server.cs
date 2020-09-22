@@ -565,8 +565,11 @@ public class NetworkServer
             GameObject.Find("MazeController").GetComponent<MazeController>().InstantiateMaze(maze);
             Debug.Log("Maze Created");
             List<object> list=MazeGenerator.ToObjectList(maze);
+            //GenerateCoins coins = GenerateCoins.GetCoinPosition();
             SimpleMessage msg = new SimpleMessage(MessageType.GameReady, "");
+            List<object> list1 = Converter.ToObjects(GenerateCoins.GetCoinPosition());
             msg.listData = list;
+            msg.list1 = list1;
             TransmitMessage(msg);
             //server.StartTick();
             this.gamelift.ReadyGame();
