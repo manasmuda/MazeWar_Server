@@ -43,12 +43,12 @@ public class GameHistory
 
     public static int CheckClientState(ClientState state)
     {
-        Debug.Log(state.tick + ":" + recentTick);
+        Debug.Log(state.playerId+":"+state.tick + ":" + recentTick);
         if (state.tick < recentTick - size)
         {
             return -1;
         }
-        else if (state.tick == recentTick)
+        else if (state.tick >= recentTick)
         {
             Debug.Log("tick matched");
             if (state.team == "blue")
@@ -109,7 +109,7 @@ public class GameHistory
                             if (gsn.Value.blueTeamState[i].playerId == state.playerId)
                             {
                                 if(gsn.Value.blueTeamState[i].CompareState(state)){
-                                    gameStates.Last.Value.blueTeamState[i] = new ClientState(state);
+                                    recentState.blueTeamState[i] = new ClientState(state);
                                     return 3;
                                 }
                                 else
@@ -127,7 +127,7 @@ public class GameHistory
                             {
                                 if (gsn.Value.redTeamState[i].CompareState(state))
                                 {
-                                    gameStates.Last.Value.redTeamState[i] = new ClientState(state);
+                                    recentState.redTeamState[i] = new ClientState(state);
                                     return 3;
                                 }
                                 else

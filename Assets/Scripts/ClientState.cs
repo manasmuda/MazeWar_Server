@@ -68,11 +68,11 @@ public class ClientState
         {
             return true;
         }
-        if (Math.Abs(angle[0] - state.angle[0]) > 0.3)
+        if (Math.Abs(angle[0] - state.angle[0]) > 10)
         {
             return true;
         }
-        if (Math.Abs(angle[0] - state.angle[0]) > 0.3)
+        if (Math.Abs(angle[0] - state.angle[0]) > 10)
         {
             return true;
         }

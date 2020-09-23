@@ -17,12 +17,13 @@ public enum PacketType
 [Serializable]
 public class UdpMsgPacket
 {
-    public UdpMsgPacket(PacketType type, string message, string playerId, string team)
+    public UdpMsgPacket(PacketType type, string message="", string playerId="", string team="")
     {
         this.type = type;
         this.message = message;
         this.time = DateTime.UtcNow.Millisecond;
         this.playerId = playerId;
+        this.team = team;
     }
 
     public PacketType type { get; set; }

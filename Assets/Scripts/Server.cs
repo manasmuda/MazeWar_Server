@@ -31,7 +31,7 @@ public class Server : MonoBehaviour
     void Start()
     {
         gameliftServer = GameObject.FindObjectOfType<GameLift>();
-        server = new NetworkServer(gameliftServer,this);    
+        server = new NetworkServer(gameliftServer, this);
     }
 
     // Update is called once per frame
@@ -41,21 +41,22 @@ public class Server : MonoBehaviour
         if (this.tickCounter >= tickRate)
         {
             Debug.Log("Update");
-            if (gameliftServer.GameStarted() && tick>0) {
+            if (gameliftServer.GameStarted() && tick > 0) {
                 CharacterSyncUpdate();
+
             }
             this.tickCounter = 0.0f;
             tick++;
-            if (tick % 30 == 0)
+            if (tick % 5 == 0 && gameliftServer.GameStarted())
                 server.SendServerTick();
-            if(gameliftServer.GameStarted())
+            if (gameliftServer.GameStarted())
                 CreateGameState();
             server.Update();
         }
-        
+
 
         // Go through any messages to process (on the game world)
-        foreach(SimpleMessage msg in messagesToProcess)
+        foreach (SimpleMessage msg in messagesToProcess)
         {
             // NOTE: We should spawn players and set positions also on server side here and validate actions. For now we just pass this data to clients
         }
@@ -64,14 +65,33 @@ public class Server : MonoBehaviour
 
     public void CharacterSyncUpdate()
     {
+        GameState gs = GameHistory.recentState;
+        UdpMsgPacket packet = new UdpMsgPacket(PacketType.GameState);
+        packet.gameState = gs;
         for (int i = 0; i < GameHistory.recentState.redTeamState.Count; i++)
         {
-            Debug.Log("Positon Update:"+GameHistory.recentState.redTeamState[i].position[0]+"+"+GameHistory.recentState.redTeamState[i].position[1] + "+"+ GameHistory.recentState.redTeamState[i].position[2]);
-            GameData.redTeamData.clientsData[GameHistory.recentState.redTeamState[i].playerId].character.GetComponent<CharacterSyncScript>().NewPlayerState(GameHistory.recentState.redTeamState[i]);
+            string tempPlayerId = GameHistory.recentState.redTeamState[i].playerId;
+            //Debug.Log("Positon Update:" + GameHistory.recentState.redTeamState[i].position[0] + "+" + GameHistory.recentState.redTeamState[i].position[1] + "+" + GameHistory.recentState.redTeamState[i].position[2]);
+            GameData.redTeamData.clientsData[tempPlayerId].character.GetComponent<CharacterSyncScript>().NewPlayerState(GameHistory.recentState.redTeamState[i]);
+            server.SendPacket(packet,GameData.redTeamData.clientsData[tempPlayerId].udpEndPoint);
+            Debug.Log("Sync Packet Sent");
         }
         for (int i = 0; i < GameHistory.recentState.blueTeamState.Count; i++)
         {
-            GameData.blueTeamData.clientsData[GameHistory.recentState.blueTeamState[i].playerId].character.GetComponent<CharacterSyncScript>().NewPlayerState(GameHistory.recentState.blueTeamState[i]);
+            string tempPlayerId = GameHistory.recentState.blueTeamState[i].playerId;
+            GameData.blueTeamData.clientsData[tempPlayerId].character.GetComponent<CharacterSyncScript>().NewPlayerState(GameHistory.recentState.blueTeamState[i]);
+            server.SendPacket(packet, GameData.blueTeamData.clientsData[tempPlayerId].udpEndPoint);
+        }
+    }
+
+    public void SendGameState()
+    {
+        //server.TransmitUdpMessage();
+        GameState gs = GameHistory.recentState;
+        UdpMsgPacket packet = new UdpMsgPacket(PacketType.GameState);
+        for(int i = 0; i < GameData.blueTeamData.clientsData.Count; i++)
+        {
+            
         }
     }
 
@@ -165,10 +185,10 @@ public class NetworkServer
     private List<TcpClient> clients = new List<TcpClient>();
     private List<TcpClient> readyClients = new List<TcpClient>();
     private List<TcpClient> clientsToRemove = new List<TcpClient>();
-    private List<EndPoint> endPoints = new List<EndPoint>();
+    private List<IPEndPoint> endPoints = new List<IPEndPoint>();
 
     private Socket udpServer;
-    private Dictionary<EndPoint, string> udpEndPoints;
+    private Dictionary<IPEndPoint, string> udpEndPoints;
 
     private UdpClient udpListener;
 
@@ -187,7 +207,8 @@ public class NetworkServer
         Debug.Log("Listening at: " + listener.LocalEndpoint.ToString());
 		listener.Start();
 
-        udpEndPoints = new Dictionary<EndPoint, string>();
+        endPoints = new List<IPEndPoint>();
+        udpEndPoints = new Dictionary<IPEndPoint, string>();
         /*IPHostEntry host = Dns.Resolve(Dns.GetHostName());
         IPAddress ip = host.AddressList[0];
         IPEndPoint endPoint = new IPEndPoint(ip, this.gamelift.listeningPort);
@@ -195,7 +216,7 @@ public class NetworkServer
         udpServer.Bind(endPoint);
         udpServer.Blocking = false;*/
 
-        udpListener = new UdpClient(this.gamelift.listeningPort);
+        udpListener = new UdpClient(this.gamelift.listeningPort+20);
         udpListener.BeginReceive(UDPRecieveCallBack, null);
 
         //Thread t1 = new Thread(ListenMsg);
@@ -294,8 +315,6 @@ public class NetworkServer
             if(this.clients.Count < 10)
             {
                 this.clients.Add(client);
-                
-
                 return;
             }
             else
@@ -383,8 +402,8 @@ public class NetworkServer
         //Reset the client lists
         this.clients = new List<TcpClient>();
         this.readyClients = new List<TcpClient>();
-        this.endPoints = new List<EndPoint> { };
-        this.udpEndPoints = new Dictionary<EndPoint, string> { };
+        this.endPoints = new List<IPEndPoint> { };
+        this.udpEndPoints = new Dictionary<IPEndPoint, string> { };
 	}
 
     //Transmit message to multiple clients
@@ -408,6 +427,14 @@ public class NetworkServer
                 this.clientsToRemove.Add(client);
 			}
 		}
+    }
+
+    public void TransmitPacket(UdpMsgPacket packet)
+    {
+        foreach(KeyValuePair<IPEndPoint,string> endpoint in udpEndPoints)
+        {
+            SendPacket(packet, endpoint.Key);
+        }   
     }
 
     //Send message to single client
@@ -463,14 +490,20 @@ public class NetworkServer
         if (!udpEndPoints.ContainsKey(clientEndPoint))
         {
             udpEndPoints.Add(clientEndPoint, playerId);
+            endPoints.Add(clientEndPoint);
+            Debug.Log("Team:"+team);
             if (team == "red")
             {
+                Debug.Log("end point setting");
                 GameData.redTeamData.clientsData[playerId].udpEndPoint = clientEndPoint;
+                Debug.Log("end point set");
             }
             else if (team == "blue")
             {
-                GameData.redTeamData.clientsData[playerId].udpEndPoint = clientEndPoint;
+                GameData.blueTeamData.clientsData[playerId].udpEndPoint = clientEndPoint;
             }
+            UdpMsgPacket packet = new UdpMsgPacket(PacketType.UDPConnect, "Success", "", "");
+            SendPacket(packet, clientEndPoint);
         }
     }
 
@@ -482,7 +515,7 @@ public class NetworkServer
     private void HandleClientState(UdpMsgPacket packet)
     {
         //if(packet.clientState.tick>)
-        Debug.Log(packet.clientState.tick + "," + server.tick);
+        //Debug.Log(packet.clientState.tick + "," + server.tick);
         int us = GameHistory.CheckClientState(packet.clientState);
         Debug.Log(us);
         Debug.Log(packet.clientState.position[0] + "," + packet.clientState.position[1] + "," + packet.clientState.position[2]);
@@ -540,9 +573,11 @@ public class NetworkServer
         if (team == "blue")
         {
             Debug.Log("blue");
-            string id=GameData.blueTeamData.AddNewClient(client);
+            string id = GameData.blueTeamData.AddNewClient(client);
+            Debug.Log("blue client added to game data");
             SimpleMessage msg = new SimpleMessage(MessageType.PlayerData, "");
             msg.playerId = id;
+            Debug.Log("blue:"+id);
             msg.team = team;
             this.SendMessage(client, msg);
         }
@@ -550,14 +585,15 @@ public class NetworkServer
         {
             Debug.Log("red");
             string id = GameData.redTeamData.AddNewClient(client);
-            Debug.Log("client added to game data");
+            Debug.Log("red client added to game data");
             SimpleMessage msg = new SimpleMessage(MessageType.PlayerData, "");
             msg.playerId = id;
             msg.team = team;
+            Debug.Log("red:" + id);
             this.SendMessage(client, msg);
         }
         Debug.Log("Player Data Sent");
-        if (readyClients.Count == 1) //players2 for temp
+        if (readyClients.Count == 2) //players2 for temp
         {
             Debug.Log("Enough clients, let's start the game!");
             MazeCell[,] maze=MazeGenerator.generateMaze();
@@ -595,34 +631,43 @@ public class NetworkServer
         Debug.Log("InitializePlayerGameData Called");
         GameData.InitializeSpawns();
         Debug.Log("Spawn Initialized");
+        Dictionary<string,float[]> blueList = new Dictionary<string, float[]>();
+        Dictionary<string,float[]> redList = new Dictionary<string, float[]>();
+        SimpleMessage msg = new SimpleMessage(MessageType.PlayerGameData);
         foreach(KeyValuePair<string,ClientData> clientData in GameData.blueTeamData.clientsData)
         {
-            SimpleMessage msg = new SimpleMessage(MessageType.PlayerGameData);
-            msg.playerId = clientData.Key;
+            //SimpleMessage msg = new SimpleMessage(MessageType.PlayerGameData);
+            //msg.playerId = clientData.Key;
             float[] sp=SpawnManager.GetSpawnPos("blue");
-            msg.floatArrData = sp;
+            //msg.floatArrData = sp;
             TcpClient tcpClient=clientData.Value.tcpClient;
             GameObject character=GameObject.Instantiate(server.characterPrefab, new Vector3(sp[0], sp[1], sp[2]), Quaternion.identity);
-            clientData.Value.character = character;
-            GameData.blueTeamData.clientsData[clientData.Value.playerId] = clientData.Value;
-            SendMessage(tcpClient, msg);
+            //clientData.Value.character = character;
+            GameData.blueTeamData.clientsData[clientData.Value.playerId].character = character;
+            //SendMessage(tcpClient, msg);
+            blueList.Add(clientData.Key,sp);
+            Debug.Log("Player SpawnMessage Sent");
         }
         Debug.Log("blue team spawn message sent");
         foreach (KeyValuePair<string, ClientData> clientData in GameData.redTeamData.clientsData)
         {
-            Debug.Log("red team client");
-            SimpleMessage msg = new SimpleMessage(MessageType.PlayerGameData);
-            msg.playerId = clientData.Key;
+            //Debug.Log("red team client");
+            //SimpleMessage msg = new SimpleMessage(MessageType.PlayerGameData);
+            //msg.playerId = clientData.Key;
             float[] sp = SpawnManager.GetSpawnPos("red");
-            Debug.Log("Player spawn created");                                                                 
-            msg.floatArrData = sp;
+            //Debug.Log("Player spawn created");                                                                 
+            //msg.floatArrData = sp;
             TcpClient tcpClient = clientData.Value.tcpClient;
             GameObject character = GameObject.Instantiate(server.characterPrefab, new Vector3(sp[0], sp[1], sp[2]), Quaternion.identity);
             //clientData.Value.character = character;
             GameData.redTeamData.clientsData[clientData.Value.playerId].character=character;
-            SendMessage(tcpClient, msg);
+            //SendMessage(tcpClient, msg);
+            redList.Add(clientData.Key, sp);
             Debug.Log("Player SpawnMessage Sent");
         }
+        msg.redSpanData = redList;
+        msg.blueSpanData = blueList;
+        TransmitMessage(msg);
         Debug.Log("red team spawn message sent");
     }
 
@@ -637,7 +682,7 @@ public class NetworkServer
         TransmitMessage(msg);
     } 
 
-    void SendPacket(UdpMsgPacket msgPacket, IPEndPoint addr)
+    public void SendPacket(UdpMsgPacket msgPacket, IPEndPoint addr)
     {
         try
         {

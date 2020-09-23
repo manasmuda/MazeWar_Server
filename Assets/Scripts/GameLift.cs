@@ -162,9 +162,9 @@ public class GameLift : MonoBehaviour
         {
             this.waitingForPlayerTime += Time.deltaTime;
             //Debug.Log(waitingForPlayerTime);
-            if (this.waitingForPlayerTime > 60.0f)
+            if (this.waitingForPlayerTime > 120.0f)
             {
-                Debug.Log("No players in 5 seconds from starting the game, terminate game session");
+                Debug.Log("No players in 60 seconds from starting the game, terminate game session");
                 this.waitingForPlayerTime = 0.0f;
                 this.gameSessionInfoReceived = false;
                 TerminateGameSession();
