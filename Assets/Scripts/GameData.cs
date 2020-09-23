@@ -6,6 +6,7 @@ public class GameData
 {
     public static int cellSize = 20;
     public static MazeCell[,] maze = new MazeCell[20, 20];
+    public static GameObject[] coinObjects;
 
 
     public static TeamData blueTeamData = new TeamData("blue");

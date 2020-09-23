@@ -25,6 +25,8 @@ public class Server : MonoBehaviour
 
     public GameObject characterPrefab;
 
+    public GameObject coinPrefab;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -567,7 +569,9 @@ public class NetworkServer
             List<object> list=MazeGenerator.ToObjectList(maze);
             //GenerateCoins coins = GenerateCoins.GetCoinPosition();
             SimpleMessage msg = new SimpleMessage(MessageType.GameReady, "");
-            List<object> list1 = Converter.ToObjects(GenerateCoins.GetCoinPosition());
+            Vector3[] coinPos = GenerateCoins.GetCoinPosition();
+            GenerateCoins.InstantiateCoins(server.coinPrefab, coinPos);
+            List<object> list1 = Converter.ToObjects(coinPos);
             msg.listData = list;
             msg.list1 = list1;
             TransmitMessage(msg);
