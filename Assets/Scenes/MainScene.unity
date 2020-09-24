@@ -474,6 +474,8 @@ MonoBehaviour:
   tick: 0
   characterPrefab: {fileID: 6163773651486500216, guid: f0a3a8383eafa684d8e1ab175c12e6a1,
     type: 3}
+  coinPrefab: {fileID: 6027171001117088656, guid: 5fccd5d2aab8c9642ae6dd93e35a5e74,
+    type: 3}
 --- !u!4 &884394001
 Transform:
   m_ObjectHideFlags: 0

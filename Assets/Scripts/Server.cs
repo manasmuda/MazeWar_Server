@@ -593,7 +593,7 @@ public class NetworkServer
             this.SendMessage(client, msg);
         }
         Debug.Log("Player Data Sent");
-        if (readyClients.Count == 2) //players2 for temp
+        if (readyClients.Count == 1) //players2 for temp
         {
             Debug.Log("Enough clients, let's start the game!");
             MazeCell[,] maze=MazeGenerator.generateMaze();
