@@ -11,7 +11,8 @@ public enum PacketType
     ServerTick,
     Spawn,
     ClientState,
-    GameState
+    GameState,
+    Shoot
 };
 
 [Serializable]

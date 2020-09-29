@@ -483,6 +483,10 @@ public class NetworkServer
         {
             HandleClientState(packet);
         }
+        if (packet.type == PacketType.Shoot)
+        {
+
+        }
     }
 
     private void HandleUdpConnect(IPEndPoint clientEndPoint,string playerId,string team)
@@ -505,6 +509,11 @@ public class NetworkServer
             UdpMsgPacket packet = new UdpMsgPacket(PacketType.UDPConnect, "Success", "", "");
             SendPacket(packet, clientEndPoint);
         }
+    }
+
+    private void HandleShootAction(UdpMsgPacket packet)
+    {
+        ClientState state = packet.clientState;
     }
 
     private void HandleGameState(UdpMsgPacket packet)
@@ -593,7 +602,7 @@ public class NetworkServer
             this.SendMessage(client, msg);
         }
         Debug.Log("Player Data Sent");
-        if (readyClients.Count == 1) //players2 for temp
+        if (readyClients.Count == 2) //players2 for temp
         {
             Debug.Log("Enough clients, let's start the game!");
             MazeCell[,] maze=MazeGenerator.generateMaze();

@@ -20,6 +20,28 @@ public class GameHistory
             Debug.Log("Prediction creation started");
             GameState state=new GameState(recentState);
             state.tick = tick;
+            for(int i = 0; i < state.redTeamState.Count; i++)
+            {
+                if (state.redTeamState[i].movementPressed)
+                {
+                    state.redTeamState[i].movementPressed = false;
+                    float ay=state.redTeamState[i].angle[1];
+                    float dist = 150 * 0.2f;
+                    state.redTeamState[i].position[0] = state.redTeamState[i].position[0] + dist * Mathf.Sin(ay);
+                    state.redTeamState[i].position[2] = state.redTeamState[i].position[2] + dist * Mathf.Cos(ay);
+                }
+            }
+            for (int i = 0; i < state.blueTeamState.Count; i++)
+            {
+                if (state.blueTeamState[i].movementPressed)
+                {
+                    state.blueTeamState[i].movementPressed = false;
+                    float ay = state.blueTeamState[i].angle[1];
+                    float dist = 150 * 0.2f;
+                    state.blueTeamState[i].position[0] = state.blueTeamState[i].position[0] + dist * Mathf.Sin(ay);
+                    state.blueTeamState[i].position[2] = state.blueTeamState[i].position[2] + dist * Mathf.Cos(ay);
+                }
+            }
             AddGameState(state, tick);
             Debug.Log("Prediction State Created");
         }
@@ -109,7 +131,16 @@ public class GameHistory
                             if (gsn.Value.blueTeamState[i].playerId == state.playerId)
                             {
                                 if(gsn.Value.blueTeamState[i].CompareState(state)){
-                                    recentState.blueTeamState[i] = new ClientState(state);
+                                    ClientState tempState= new ClientState(state);
+                                    if (tempState.movementPressed)
+                                    {
+                                        tempState.movementPressed = false;
+                                        float ay = tempState.angle[1];
+                                        float dist = 150 * 0.2f;
+                                        tempState.position[0] = tempState.position[0] + dist * Mathf.Sin(ay);
+                                        tempState.position[2] = tempState.position[2] + dist * Mathf.Cos(ay);
+                                    }
+                                    recentState.blueTeamState[i] = tempState;
                                     return 3;
                                 }
                                 else
@@ -127,7 +158,17 @@ public class GameHistory
                             {
                                 if (gsn.Value.redTeamState[i].CompareState(state))
                                 {
-                                    recentState.redTeamState[i] = new ClientState(state);
+                                    ClientState tempState = new ClientState(state);
+                                    if (tempState.movementPressed)
+                                    {
+                                        tempState.movementPressed = false;
+                                        float ay = tempState.angle[1];
+                                        float dist = 150 * 0.2f;
+                                        tempState.position[0] = tempState.position[0] + dist * Mathf.Sin(ay);
+                                        tempState.position[2] = tempState.position[2] + dist * Mathf.Cos(ay);
+                                    }
+                                    
+                                    recentState.redTeamState[i] = tempState;
                                     return 3;
                                 }
                                 else
