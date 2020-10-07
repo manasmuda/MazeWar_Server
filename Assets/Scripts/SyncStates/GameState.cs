@@ -9,8 +9,8 @@ public class GameState
     public int tick;
     public int stateType;
 
-    public List<ClientState> blueTeamState = new List<ClientState>();
-    public List<ClientState> redTeamState = new List<ClientState>();
+    public Dictionary<string,ClientState> blueTeamState = new Dictionary<string, ClientState>();
+    public Dictionary<string,ClientState> redTeamState = new Dictionary<string, ClientState>();
 
     public GameState()
     {
@@ -21,28 +21,28 @@ public class GameState
     {
         this.tick = gameState.tick;
         this.stateType = gameState.stateType;
-        for(int i = 0; i < gameState.blueTeamState.Count; i++)
+        foreach(ClientState state in gameState.blueTeamState.Values)
         {
-            this.blueTeamState.Add(new ClientState(gameState.blueTeamState[i]));
+            this.blueTeamState.Add(state.playerId,new ClientState(state));
         }
-        for (int i = 0; i < gameState.redTeamState.Count; i++)
+        foreach (ClientState state in gameState.redTeamState.Values)
         {
-            this.redTeamState.Add(new ClientState(gameState.redTeamState[i]));
+            this.redTeamState.Add(state.playerId, new ClientState(state));
         }
     }
 
     public bool CompareState(GameState state)
     {
-        for (int i = 0; i < state.blueTeamState.Count; i++)
+        foreach(ClientState clientState in state.blueTeamState.Values)
         {
-            if (this.blueTeamState[i].CompareState(state.blueTeamState[i]))
+            if (this.blueTeamState[clientState.playerId].CompareState(clientState))
             {
                 return true;
             }
         }
-        for (int i = 0; i < state.redTeamState.Count; i++)
+        foreach (ClientState clientState in state.redTeamState.Values)
         {
-            if (this.redTeamState[i].CompareState(state.redTeamState[i]))
+            if (this.redTeamState[clientState.playerId].CompareState(clientState))
             {
                 return true;
             }

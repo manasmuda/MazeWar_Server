@@ -18,6 +18,7 @@ public class ClientData
     //Gadgets Data
 
     public GameObject character;
+    public int damage;
 
     public int coinsCollected;
     public int coinsLost;
@@ -35,6 +36,8 @@ public class ClientData
         kills = 0;
         deaths = 0;
         coinsSnatched = 0;
+        level = 1;
+        damage = 10 + (level - 1) * 2;
     }
 
     
