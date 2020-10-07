@@ -60,18 +60,19 @@ public class CharacterSyncScript : MonoBehaviour
     }
 
 
-    public IEnumerator MoveOverSpeed(Vector3 end,Vector3 fang, float speed=200)
+    public IEnumerator MoveOverSpeed(Vector3 end,Vector3 fang, float speed=40)
     {
         // speed should be 1 unit per second
+        Quaternion q = new Quaternion();
+        q.eulerAngles = fang;
+        transform.rotation = q;
         while (transform.position != end)
         {
             Debug.Log(transform.position.z+","+end.z);
             transform.position = Vector3.MoveTowards(transform.position, end, speed * Time.deltaTime);
             yield return new WaitForEndOfFrame();
         }
-        Quaternion q = new Quaternion();
-        q.eulerAngles = fang;
-        transform.rotation = q;
+        
         if (movers.Count > 0)
         {
             Debug.Log("Next Move Enqued");

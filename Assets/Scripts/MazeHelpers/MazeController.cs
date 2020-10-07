@@ -11,7 +11,10 @@ public class MazeController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-       
+        //MazeCell[,] maze = MazeGenerator.generateMaze();
+        //GameData.maze = maze;
+        //InstantiateMaze(maze);
+        //GameObject.Find("Cube2").GetComponent<TestEditor>().StartIt();
     }
 
     // Update is called once per frame

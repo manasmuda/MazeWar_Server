@@ -68,18 +68,18 @@ public class Server : MonoBehaviour
         GameState gs = GameHistory.recentState;
         UdpMsgPacket packet = new UdpMsgPacket(PacketType.GameState);
         packet.gameState = gs;
-        for (int i = 0; i < GameHistory.recentState.redTeamState.Count; i++)
+        foreach(ClientState clientState in GameHistory.recentState.redTeamState.Values)
         {
-            string tempPlayerId = GameHistory.recentState.redTeamState[i].playerId;
+            string tempPlayerId = clientState.playerId;
             //Debug.Log("Positon Update:" + GameHistory.recentState.redTeamState[i].position[0] + "+" + GameHistory.recentState.redTeamState[i].position[1] + "+" + GameHistory.recentState.redTeamState[i].position[2]);
-            GameData.redTeamData.clientsData[tempPlayerId].character.GetComponent<CharacterSyncScript>().NewPlayerState(GameHistory.recentState.redTeamState[i]);
-            server.SendPacket(packet,GameData.redTeamData.clientsData[tempPlayerId].udpEndPoint);
-            Debug.Log("Sync Packet Sent");
+            GameData.redTeamData.clientsData[tempPlayerId].character.GetComponent<CharacterSyncScript>().NewPlayerState(clientState);
+            server.SendPacket(packet, GameData.redTeamData.clientsData[tempPlayerId].udpEndPoint);
         }
-        for (int i = 0; i < GameHistory.recentState.blueTeamState.Count; i++)
+        foreach (ClientState clientState in GameHistory.recentState.blueTeamState.Values)
         {
-            string tempPlayerId = GameHistory.recentState.blueTeamState[i].playerId;
-            GameData.blueTeamData.clientsData[tempPlayerId].character.GetComponent<CharacterSyncScript>().NewPlayerState(GameHistory.recentState.blueTeamState[i]);
+            string tempPlayerId = clientState.playerId;
+            //Debug.Log("Positon Update:" + GameHistory.recentState.redTeamState[i].position[0] + "+" + GameHistory.recentState.redTeamState[i].position[1] + "+" + GameHistory.recentState.redTeamState[i].position[2]);
+            GameData.blueTeamData.clientsData[tempPlayerId].character.GetComponent<CharacterSyncScript>().NewPlayerState(clientState);
             server.SendPacket(packet, GameData.blueTeamData.clientsData[tempPlayerId].udpEndPoint);
         }
     }
@@ -142,7 +142,7 @@ public class Server : MonoBehaviour
             clientState.team = "blue";
             clientState.tick = 0;
             clientState.stateType = 0;
-            state.blueTeamState.Add(clientState);
+            state.blueTeamState.Add(data.Key,clientState);
         }
         foreach (KeyValuePair<string, ClientData> data in GameData.redTeamData.clientsData)
         {
@@ -157,7 +157,7 @@ public class Server : MonoBehaviour
             clientState.team = "red";
             clientState.tick = 0;
             clientState.stateType = 0;
-            state.redTeamState.Add(clientState);
+            state.redTeamState.Add(data.Key,clientState);
         }
         GameHistory.AddGameState(state, 0);
         Debug.Log("Initial State Added");
@@ -485,7 +485,7 @@ public class NetworkServer
         }
         if (packet.type == PacketType.Shoot)
         {
-
+            HandleShootAction(packet);
         }
     }
 
@@ -514,6 +514,83 @@ public class NetworkServer
     private void HandleShootAction(UdpMsgPacket packet)
     {
         ClientState state = packet.clientState;
+        if (server.tick - state.tick < 5)
+        {
+            LinkedListNode<GameState> llnGState = GameHistory.GetGameState(state.tick);
+            if (llnGState != null)
+            {
+                GameState gState = llnGState.Value;
+
+                ClientState hitClientState = null;
+                ClientState shooterClientState = null;
+
+                bool shootSuccess = false;
+                int damage = 0;
+                if (state.bulletHit)
+                {
+                    if (state.team == "blue")
+                    {
+                        damage = GameData.blueTeamData.clientsData[state.playerId].damage;
+                        hitClientState = gState.redTeamState[state.bulletHitId];
+                        if ((Mathf.Abs(hitClientState.position[0] - state.bulletHitPosition[0]) < 2) && (Mathf.Abs(hitClientState.position[2] - state.bulletHitPosition[2]) < 2))
+                        {
+                            shootSuccess = true;
+                        }
+                        shooterClientState = gState.blueTeamState[state.playerId];
+                    }
+                    else
+                    {
+                        damage = GameData.redTeamData.clientsData[state.playerId].damage;
+                        hitClientState = gState.blueTeamState[state.bulletHitId];
+                        if ((Mathf.Abs(hitClientState.position[0] - state.bulletHitPosition[0]) < 2) && (Mathf.Abs(hitClientState.position[2] - state.bulletHitPosition[2]) < 2))
+                        {
+                            shootSuccess = true;
+                        }
+                        shooterClientState = gState.redTeamState[state.playerId];
+                    }
+                }
+                if (shooterClientState != null)
+                {
+                    if (shooterClientState.bulletsLeft > 0)
+                    {
+                        int bd = -1;
+                        int hd = 0;
+                        if (shootSuccess)
+                        {
+                            hd = -1 * damage;
+                        }
+                        //shooterClientState.bulletsLeft = shooterClientState.bulletsLeft - 1;
+                        LinkedListNode<GameState> cn = llnGState;
+                        while (cn != null)
+                        {
+                            if (state.team == "blue")
+                            {
+                                cn.Value.blueTeamState[state.playerId].bulletsLeft += bd;
+                                cn.Value.redTeamState[state.bulletHitId].health += hd;
+                                if (cn.Value.redTeamState[state.bulletHitId].health < 0)
+                                {
+                                    //Die Action
+                                }
+                            }
+                            else
+                            {
+                                cn.Value.redTeamState[state.playerId].bulletsLeft += bd;
+                                cn.Value.blueTeamState[state.bulletHitId].health += hd;
+                                if (cn.Value.blueTeamState[state.bulletHitId].health < 0)
+                                {
+                                    //Die Action
+                                }
+                            }
+                            cn = cn.Next;
+                        }
+                    }
+                }
+                UdpMsgPacket msgPacket = new UdpMsgPacket(PacketType.Shoot, "", "", "");
+                msgPacket.gameState = gState;
+                msgPacket.clientState = state;
+                TransmitPacket(msgPacket);
+            }
+        }
     }
 
     private void HandleGameState(UdpMsgPacket packet)

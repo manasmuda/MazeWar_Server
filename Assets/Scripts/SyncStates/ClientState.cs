@@ -12,12 +12,18 @@ public class ClientState
     public float[] position = new float[3];
     public float[] angle = new float[3];
 
+    public bool crouch;
+
     public String name;
 
     public int health;
     public int coinsHolding;
     public int tracersRemaining;
     public int bulletsLeft;
+
+    public bool bulletHit;
+    public string bulletHitId;
+    public float[] bulletHitPosition;
 
     public int reloadStartTick;
 
@@ -48,6 +54,7 @@ public class ClientState
         reloadStartTick = state.reloadStartTick;
         stateType = state.stateType;
         movementPressed = state.movementPressed;
+        crouch = state.crouch;
     }
 
     public bool CompareState(ClientState state)
