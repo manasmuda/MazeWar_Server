@@ -57,6 +57,42 @@ public class ClientState
         crouch = state.crouch;
     }
 
+    public ClientState CompareAndCopy(ClientState newState)
+    {
+        playerId = newState.playerId;
+        team = newState.team;
+        tick = newState.tick;
+        name = newState.name;
+        position[0] = newState.position[0];
+        position[1] = newState.position[1];
+        position[2] = newState.position[2];
+        angle[0] = newState.angle[0];
+        angle[1] = newState.angle[1];
+        angle[2] = newState.angle[2];
+        stateType = newState.stateType;
+        movementPressed = newState.movementPressed;
+        crouch = newState.crouch;
+        if (health > newState.health)
+        {
+            health = newState.health;
+        }
+        if (coinsHolding < newState.coinsHolding)
+        {
+            coinsHolding = newState.coinsHolding;
+        }
+        if (tracersRemaining > newState.tracersRemaining)
+        {
+            tracersRemaining = newState.tracersRemaining;
+        }
+        if (bulletsLeft > newState.bulletsLeft)
+        {
+            bulletsLeft = newState.bulletsLeft;
+        }
+        reloadStartTick = newState.reloadStartTick;
+        
+        return this;
+    }
+
     public bool CompareState(ClientState state)
     {
         if (Math.Abs(position[0] - state.position[0]) > 0.1)

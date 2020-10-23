@@ -77,9 +77,11 @@ public class GenerateCoins
 
    public static void InstantiateCoins(GameObject coinPrefab,Vector3[] coinPos)
     {
+        GameObject coinsParent = new GameObject("CoinsParent");
+        coinsParent.transform.position = Vector3.zero;
         GameObject[] coinObjects = new GameObject[coinCount];
         for (int i = 0; i < coinPos.Length; i++) {
-            coinObjects[i]= GameObject.Instantiate(coinPrefab,coinPos[i],Quaternion.identity);
+            coinObjects[i]= GameObject.Instantiate(coinPrefab,coinPos[i],Quaternion.identity,coinsParent.transform);
         }
         GameData.coinObjects = coinObjects;
     }

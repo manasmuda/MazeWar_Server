@@ -12,6 +12,7 @@ public class Gadget : MonoBehaviour
     public bool mapChange;
     public int reloadTime;
     public int useLimit;
+    
     public GameObject gadetPrefab;
     public GameObject character;
 
@@ -27,14 +28,7 @@ public class Gadget : MonoBehaviour
 
     protected virtual void Update()
     {
-        if (timerMode)
-        {
-            timer = timer - Time.deltaTime;
-            if (timer <= 0)
-            {
-                this.EndAction();
-            }
-        }
+
     }
 
     public virtual void CallMapChange()
@@ -47,12 +41,18 @@ public class Gadget : MonoBehaviour
 
     }
 
+    public virtual bool CanCall()
+    {
+        return useLimit > 0 && enable;
+    }
+
     public virtual void CallAction()
     {
         if (useLimit == 0)
             return;
         useLimit--;
         enable = false;
+        StartCoroutine(Reloading());
     }
 
     public virtual void EndAction()
@@ -62,6 +62,17 @@ public class Gadget : MonoBehaviour
             timerMode = false;
             enable = true;
         }
+    }
+
+    IEnumerator Reloading()
+    {
+        timer = reloadTime;
+        while (timer > 0)
+        {
+            timer = timer - 0.2f;
+            yield return new WaitForSeconds(0.2f);
+        }
+        this.EndAction();
     }
 
 }

@@ -17,7 +17,8 @@ public enum MessageType
     PlayerGameData,
     TeamData,
     PlayerGameReady,
-    ServerTick
+    ServerTick,
+    GadgetCallAction
 };
 
 

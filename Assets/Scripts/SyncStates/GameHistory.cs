@@ -17,7 +17,7 @@ public class GameHistory
     {
         if (tick > recentTick)
         {
-            Debug.Log("Prediction creation started");
+            //Debug.Log("Prediction creation started");
             GameState state=new GameState(recentState);
             state.tick = tick;
             /*for(int i = 0; i < state.redTeamState.Count; i++)
@@ -43,7 +43,7 @@ public class GameHistory
                 }
             }*/
             AddGameState(state, tick);
-            Debug.Log("Prediction State Created");
+            //Debug.Log("Prediction State Created");
         }
         return recentState;
     }
@@ -59,7 +59,7 @@ public class GameHistory
             gameStateTicks.AddLast(tick);
             recentState = state;
             recentTick = tick;
-            Debug.Log("Game State Added");
+            //Debug.Log("Game State Added");
 
     }
 
@@ -72,14 +72,18 @@ public class GameHistory
         }
         else if (state.tick >= recentTick)
         {
-            Debug.Log("tick matched");
+            //Debug.Log("tick matched");
             if (state.team == "blue")
             {
-                recentState.blueTeamState[state.playerId] = new ClientState(state);
+                ClientState tempState = new ClientState(recentState.blueTeamState[state.playerId]);
+                tempState.CompareAndCopy(state);
+                recentState.blueTeamState[state.playerId] = tempState;
             }
             else
             {
-                recentState.redTeamState[state.playerId] = new ClientState(state);
+                ClientState tempState = new ClientState(recentState.redTeamState[state.playerId]);
+                tempState.CompareAndCopy(state);
+                recentState.redTeamState[state.playerId] = tempState;
             }
             return 2;
 
@@ -96,7 +100,8 @@ public class GameHistory
                     {
                         if (gsn.Value.blueTeamState[state.playerId].CompareState(state))
                         {
-                            ClientState tempState = new ClientState(state);
+                            ClientState tempState = new ClientState(gsn.Value.blueTeamState[state.playerId]);
+                            tempState.CompareAndCopy(state);
                             /*if (tempState.movementPressed)
                             {
                                 tempState.movementPressed = false;
@@ -117,7 +122,8 @@ public class GameHistory
                     {
                         if (gsn.Value.redTeamState[state.playerId].CompareState(state))
                         {
-                            ClientState tempState = new ClientState(state);
+                            ClientState tempState = new ClientState(gsn.Value.redTeamState[state.playerId]);
+                            tempState.CompareAndCopy(state);
                             /*if (tempState.movementPressed)
                             {
                                 tempState.movementPressed = false;

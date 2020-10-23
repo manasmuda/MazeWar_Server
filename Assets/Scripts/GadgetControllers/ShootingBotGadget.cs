@@ -37,7 +37,6 @@ public class ShootingBotGadget : Gadget
         base.CallAction();
         GameObject gadgetObject = Instantiate(gadetPrefab, character.transform.position, Quaternion.identity);
         activeObjects.Add(gadgetObject);
-
     }
 
     public override void EndAction()

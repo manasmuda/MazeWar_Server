@@ -8,7 +8,7 @@ public class Coins : MonoBehaviour
     void Start()
     {
         transform.parent = GameObject.Find("CoinParent").transform;
-        CoinCollectorBot.coinCollectorBot_instance.isChecking=true;
+        //CoinCollectorBot.coinCollectorBot_instance.isChecking=true;
     }
 
 }

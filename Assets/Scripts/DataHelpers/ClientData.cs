@@ -26,6 +26,13 @@ public class ClientData
     public int deaths;
     public int coinsSnatched;
 
+    public Gadget LGadget1;
+    public Gadget LGadget2;
+    public Gadget HGadget1;
+    public Gadget HGadget2;
+
+    public Gadget[] gadgets = new Gadget[4];
+
     public ClientData(string id,TcpClient tcpClient)
     {
         //Debug.Log("Creating client data");

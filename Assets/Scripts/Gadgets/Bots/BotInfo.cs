@@ -3,13 +3,9 @@ using UnityEngine;
 
 public class BotInfo : MonoBehaviour
 {
-    public enum Team
-    {
-        red,
-
-        blue
-    }
-    public Team team;
-    public float playerID;
+    
+    public string team;
+    public string playerID;
+    public string botId;
     public float botHealth;
 }

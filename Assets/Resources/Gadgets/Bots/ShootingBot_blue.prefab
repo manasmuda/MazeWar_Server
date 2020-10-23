@@ -96,7 +96,7 @@ GameObject:
   - component: {fileID: 3547580833465377098}
   - component: {fileID: 3547580833465377099}
   m_Layer: 8
-  m_Name: EnemyChasingBot(B)
+  m_Name: ShootingBot_blue
   m_TagString: Bot
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -111,7 +111,7 @@ Transform:
   m_GameObject: {fileID: 3547580833465377094}
   m_LocalRotation: {x: -0, y: 0.08715578, z: -0, w: 0.9961947}
   m_LocalPosition: {x: -53.47, y: -0.13999999, z: -54.8}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.65, y: 0.65, z: 0.65}
   m_Children:
   - {fileID: 4946979554907122925}
   - {fileID: 4946979555024835796}
@@ -133,8 +133,8 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1, y: 3.1591644, z: 1}
-  m_Center: {x: 0, y: 1.7970142, z: 0}
+  m_Size: {x: 1, y: 2.4600172, z: 1}
+  m_Center: {x: 0, y: 1.4474406, z: 0}
 --- !u!195 &3547580833465377092
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -176,6 +176,8 @@ MonoBehaviour:
   bullet: {fileID: 4912938585013577949, guid: b573aaf3992674f42a3fc6bc3eeae484, type: 3}
   bulletSpeed: 500
   isVisible: 0
+  canShoot: 1
+  BotDataSet: 0
 --- !u!54 &3547580833465377098
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -204,8 +206,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0c40088efb46ac4a9345338d08bef78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  team: 1
+  team: red
   playerID: 0
+  botId: 
   botHealth: 0
 --- !u!1 &4946979553663022290
 GameObject:
@@ -218,7 +221,6 @@ GameObject:
   - component: {fileID: 4946979553663022291}
   - component: {fileID: 4946979553663022294}
   - component: {fileID: 4946979553663022289}
-  - component: {fileID: 4946979553663022288}
   - component: {fileID: 4946979553663022295}
   m_Layer: 0
   m_Name: LineOfSight
@@ -270,49 +272,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   checkTag: Player
-  triggerEvent:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 3547580833465377095}
-        m_TargetAssemblyTypeName: EnemyChasingBot, Assembly-CSharp
-        m_MethodName: GoToShootState
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
---- !u!114 &4946979553663022288
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4946979553663022290}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eb29b1011c3ded44ca47687162a2f1a5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  checkTag: Player
-  triggerEvent:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 3547580833465377095}
-        m_TargetAssemblyTypeName: EnemyChasingBot, Assembly-CSharp
-        m_MethodName: GoToChaseState
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+  playerList: []
+  curPlayer: {fileID: 0}
+  enterState: 3
+  exitState: 2
 --- !u!136 &4946979553663022295
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -324,7 +287,7 @@ CapsuleCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   m_Radius: 1
-  m_Height: 4.2201657
+  m_Height: 3.5
   m_Direction: 2
   m_Center: {x: 0.000000010077787, y: 0, z: 0.38991663}
 --- !u!1 &4946979553705380300
@@ -368,7 +331,6 @@ GameObject:
   - component: {fileID: 4946979554907122925}
   - component: {fileID: 4946979554907122929}
   - component: {fileID: 4946979554907122928}
-  - component: {fileID: 4946979554907122930}
   - component: {fileID: 4946979554907122931}
   m_Layer: 0
   m_Name: FindingRange
@@ -402,7 +364,7 @@ SphereCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 10
+  m_Radius: 18
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &4946979554907122928
 Rigidbody:
@@ -420,34 +382,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &4946979554907122930
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4946979554907122924}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eb29b1011c3ded44ca47687162a2f1a5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  checkTag: Player
-  triggerEvent:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 3547580833465377095}
-        m_TargetAssemblyTypeName: EnemyChasingBot, Assembly-CSharp
-        m_MethodName: GoToCheckState
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
 --- !u!114 &4946979554907122931
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -461,21 +395,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   checkTag: Player
-  triggerEvent:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 3547580833465377095}
-        m_TargetAssemblyTypeName: EnemyChasingBot, Assembly-CSharp
-        m_MethodName: GoToChaseState
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+  playerList: []
+  curPlayer: {fileID: 0}
+  enterState: 2
+  exitState: 0
 --- !u!1 &4946979555024835799
 GameObject:
   m_ObjectHideFlags: 0
@@ -487,7 +410,6 @@ GameObject:
   - component: {fileID: 4946979555024835796}
   - component: {fileID: 4946979555024835800}
   - component: {fileID: 4946979555024835803}
-  - component: {fileID: 4946979555024835802}
   - component: {fileID: 4946979555024835797}
   m_Layer: 0
   m_Name: ShootingRange
@@ -521,7 +443,7 @@ SphereCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 8
+  m_Radius: 7
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &4946979555024835803
 Rigidbody:
@@ -539,34 +461,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &4946979555024835802
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4946979555024835799}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: eb29b1011c3ded44ca47687162a2f1a5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  checkTag: Player
-  triggerEvent:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 3547580833465377095}
-        m_TargetAssemblyTypeName: EnemyChasingBot, Assembly-CSharp
-        m_MethodName: GoToChaseState
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
 --- !u!114 &4946979555024835797
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -580,21 +474,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   checkTag: Player
-  triggerEvent:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 3547580833465377095}
-        m_TargetAssemblyTypeName: EnemyChasingBot, Assembly-CSharp
-        m_MethodName: GoToShootState
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+  playerList: []
+  curPlayer: {fileID: 0}
+  enterState: 3
+  exitState: 2
 --- !u!1 &5834852788656759454
 GameObject:
   m_ObjectHideFlags: 0
@@ -654,7 +537,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -876546973899608171, guid: 0bbb530eb90936b46a662afca6adb761, type: 3}
+  - {fileID: 2100000, guid: db73d1f855e19094aa6627ac56a32d51, type: 2}
   - {fileID: 5536123062436096700, guid: 0bbb530eb90936b46a662afca6adb761, type: 3}
   - {fileID: -6478536213147159724, guid: 0bbb530eb90936b46a662afca6adb761, type: 3}
   m_StaticBatchInfo:

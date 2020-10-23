@@ -22,14 +22,14 @@ public class TeamData
     }
 
 
-    public string AddNewClient(TcpClient tcpClient)
+    public ClientData AddNewClient(TcpClient tcpClient)
     {
         string newId = RandomString(10);
         //Debug.Log("Adding new cliernt");
         //string newId = "123";
         ClientData clientData = new ClientData(newId,tcpClient);
         clientsData.Add(newId, clientData);
-        return newId;
+        return clientData;
     }
 
     public static string RandomString(int size)

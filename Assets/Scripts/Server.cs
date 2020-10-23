@@ -7,6 +7,8 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Collections;
 using System.Text;
+using System.Reflection;
+using System.Linq;
 
 // *** MONOBEHAVIOUR TO MANAGE SERVER LOGIC *** //
 
@@ -40,10 +42,8 @@ public class Server : MonoBehaviour
         this.tickCounter += Time.deltaTime;
         if (this.tickCounter >= tickRate)
         {
-            Debug.Log("Update");
             if (gameliftServer.GameStarted() && tick > 0) {
                 CharacterSyncUpdate();
-
             }
             this.tickCounter = 0.0f;
             tick++;
@@ -68,15 +68,18 @@ public class Server : MonoBehaviour
         GameState gs = GameHistory.recentState;
         UdpMsgPacket packet = new UdpMsgPacket(PacketType.GameState);
         packet.gameState = gs;
-        foreach(ClientState clientState in GameHistory.recentState.redTeamState.Values)
+        for(int i = 0; i < GameHistory.recentState.redTeamState.Values.Count; i++)
         {
+            ClientState clientState = GameHistory.recentState.redTeamState.Values.ElementAt(i);
             string tempPlayerId = clientState.playerId;
             //Debug.Log("Positon Update:" + GameHistory.recentState.redTeamState[i].position[0] + "+" + GameHistory.recentState.redTeamState[i].position[1] + "+" + GameHistory.recentState.redTeamState[i].position[2]);
             GameData.redTeamData.clientsData[tempPlayerId].character.GetComponent<CharacterSyncScript>().NewPlayerState(clientState);
             server.SendPacket(packet, GameData.redTeamData.clientsData[tempPlayerId].udpEndPoint);
         }
-        foreach (ClientState clientState in GameHistory.recentState.blueTeamState.Values)
+
+        for (int i = 0; i < GameHistory.recentState.blueTeamState.Values.Count; i++)
         {
+            ClientState clientState = GameHistory.recentState.blueTeamState.Values.ElementAt(i);
             string tempPlayerId = clientState.playerId;
             //Debug.Log("Positon Update:" + GameHistory.recentState.redTeamState[i].position[0] + "+" + GameHistory.recentState.redTeamState[i].position[1] + "+" + GameHistory.recentState.redTeamState[i].position[2]);
             GameData.blueTeamData.clientsData[tempPlayerId].character.GetComponent<CharacterSyncScript>().NewPlayerState(clientState);
@@ -262,7 +265,7 @@ public class NetworkServer
 
             udpListener.BeginReceive(UDPRecieveCallBack, null);
             //string msg=Encoding.Default.GetString(data);
-            Debug.Log("Recieved UDP msg:"+msgPacket.type);
+            //Debug.Log("Recieved UDP msg:"+msgPacket.type);
             HandleUdpMsg(msgPacket, clientEndPoint);            
 
             if (data.Length < 4)
@@ -270,7 +273,7 @@ public class NetworkServer
                 return;
             }
 
-            Debug.Log(msgPacket.message);
+            //Debug.Log(msgPacket.message);
 
             //UdpMsgPacket msgPacket = new UdpMsgPacket(PacketType.Spawn, "Welcome to UDP");
             //SendPacket(msgPacket, clientEndPoint);
@@ -469,6 +472,10 @@ public class NetworkServer
         {
             HandlePlayerGameReady(client,msg);
         }
+        else if (msg.messageType == MessageType.GadgetCallAction)
+        {
+            
+        }
 
         return false;
     }
@@ -511,52 +518,90 @@ public class NetworkServer
         }
     }
 
+    private void HandleGadgetCallAction(SimpleMessage msg)
+    {
+        Debug.Log("Handle Gadget Call Action");
+        if (msg.stringArrData[1] == "blue")
+        {
+            ClientData clientData = GameData.blueTeamData.clientsData[msg.stringArrData[0]];
+            Gadget gadget = clientData.gadgets[msg.intData];
+            if (gadget.CanCall())
+            {
+                gadget.CallAction();
+                SimpleMessage message = new SimpleMessage(MessageType.GadgetCallAction);
+                message.intData = msg.intData;
+                SendMessage(clientData.tcpClient, message);
+            }
+        }
+        else if (msg.stringArrData[1] == "red")
+        {
+            ClientData clientData = GameData.redTeamData.clientsData[msg.stringArrData[0]];
+            Gadget gadget = clientData.gadgets[msg.intData];
+            if (gadget.CanCall())
+            {
+                gadget.CallAction();
+                SimpleMessage message = new SimpleMessage(MessageType.GadgetCallAction);
+                message.intData = msg.intData;
+                SendMessage(clientData.tcpClient, message);
+            }
+        }
+    }
+
     private void HandleShootAction(UdpMsgPacket packet)
     {
         ClientState state = packet.clientState;
         if (server.tick - state.tick < 5)
         {
+            Debug.Log("Shoot Action: Shoot Tick Accepted");
             LinkedListNode<GameState> llnGState = GameHistory.GetGameState(state.tick);
             if (llnGState != null)
             {
+                Debug.Log("Shoot Action: Found Game State");
                 GameState gState = llnGState.Value;
 
                 ClientState hitClientState = null;
                 ClientState shooterClientState = null;
 
-                bool shootSuccess = false;
+                bool shootSuccess = true;
                 int damage = 0;
                 if (state.bulletHit)
                 {
+                    Debug.Log("Shoot Action: Bullet Hit");
                     if (state.team == "blue")
                     {
+                        Debug.Log("Shoot Action: Blue");
                         damage = GameData.blueTeamData.clientsData[state.playerId].damage;
                         hitClientState = gState.redTeamState[state.bulletHitId];
-                        if ((Mathf.Abs(hitClientState.position[0] - state.bulletHitPosition[0]) < 2) && (Mathf.Abs(hitClientState.position[2] - state.bulletHitPosition[2]) < 2))
+                        if ((Mathf.Abs(hitClientState.position[0] - state.bulletHitPosition[0]) > 2) || (Mathf.Abs(hitClientState.position[2] - state.bulletHitPosition[2]) > 2))
                         {
-                            shootSuccess = true;
+                            shootSuccess = false;
                         }
                         shooterClientState = gState.blueTeamState[state.playerId];
+                        Debug.Log("Shoot Action: shooterClientState is set");
                     }
                     else
                     {
+                        Debug.Log("Shoot Action: Red");
                         damage = GameData.redTeamData.clientsData[state.playerId].damage;
                         hitClientState = gState.blueTeamState[state.bulletHitId];
-                        if ((Mathf.Abs(hitClientState.position[0] - state.bulletHitPosition[0]) < 2) && (Mathf.Abs(hitClientState.position[2] - state.bulletHitPosition[2]) < 2))
+                        if ((Mathf.Abs(hitClientState.position[0] - state.bulletHitPosition[0]) > 2) || (Mathf.Abs(hitClientState.position[2] - state.bulletHitPosition[2]) > 2))
                         {
-                            shootSuccess = true;
+                            shootSuccess = false;
                         }
                         shooterClientState = gState.redTeamState[state.playerId];
+                        Debug.Log("Shoot Action: shooterClientState is set");
                     }
                 }
                 if (shooterClientState != null)
                 {
                     if (shooterClientState.bulletsLeft > 0)
                     {
+                        Debug.Log("Shoot Action: Shot Started");
                         int bd = -1;
                         int hd = 0;
                         if (shootSuccess)
                         {
+                            Debug.Log("Shoot Action: Shot Success");
                             hd = -1 * damage;
                         }
                         //shooterClientState.bulletsLeft = shooterClientState.bulletsLeft - 1;
@@ -590,6 +635,10 @@ public class NetworkServer
                 msgPacket.clientState = state;
                 TransmitPacket(msgPacket);
             }
+            else
+            {
+                Debug.Log("Shoot Action: Game State is null");
+            }
         }
     }
 
@@ -603,8 +652,8 @@ public class NetworkServer
         //if(packet.clientState.tick>)
         //Debug.Log(packet.clientState.tick + "," + server.tick);
         int us = GameHistory.CheckClientState(packet.clientState);
-        Debug.Log(us);
-        Debug.Log(packet.clientState.position[0] + "," + packet.clientState.position[1] + "," + packet.clientState.position[2]);
+        //Debug.Log(us);
+        //Debug.Log(packet.clientState.position[0] + "," + packet.clientState.position[1] + "," + packet.clientState.position[2]);
         /*if (us==0)
         {
             if (packet.team == "red")
@@ -645,6 +694,44 @@ public class NetworkServer
         string team = "blue";
         // get client details from lambda like team, level, gadgets
 
+        string hg1 = "CoinCollectingBot";
+        string hg2= "CoinCollectingBot";
+        string lg1 = "ShootingBot";
+        string lg2 = "ShootingBot";
+
+        Gadget lgadget1=null;
+        Gadget hgadget1=null;
+        Gadget lgadget2=null;
+        Gadget hgadget2=null;
+
+        try
+        {
+            GameObject lg1object = Resources.Load<GameObject>("GadgetControllers/"+lg1+"GadgetController");
+            lg1object = GameObject.Instantiate(lg1object, Vector3.zero, Quaternion.identity);
+            lgadget1 = lg1object.GetComponent<Gadget>();
+            GameObject lg2object = Resources.Load<GameObject>("GadgetControllers/" + lg2 + "GadgetController");
+            lg2object = GameObject.Instantiate(lg2object, Vector3.zero, Quaternion.identity);
+            lgadget2 = lg2object.GetComponent<Gadget>();
+            GameObject hg1object = Resources.Load<GameObject>("GadgetControllers/" + hg1 + "GadgetController");
+            hg1object = GameObject.Instantiate(hg1object, Vector3.zero, Quaternion.identity);
+            hgadget1 = hg1object.GetComponent<Gadget>();
+            GameObject hg2object = Resources.Load<GameObject>("GadgetControllers/" + hg2 + "GadgetController");
+            hg2object = GameObject.Instantiate(hg2object, Vector3.zero, Quaternion.identity);
+            hgadget2 = hg2object.GetComponent<Gadget>();
+        }
+        catch(Exception e)
+        {
+            Debug.LogError(e);
+            Debug.LogError(e.Message);
+            Debug.LogError(e.InnerException);
+        }
+        Debug.Log("Gadget created");
+
+        if (lgadget1 == null)
+        {
+            Debug.Log("Gadget are null");
+        }
+
         //temp code start
         if (readyClients.Count % 2 == 0)
         {
@@ -659,22 +746,36 @@ public class NetworkServer
         if (team == "blue")
         {
             Debug.Log("blue");
-            string id = GameData.blueTeamData.AddNewClient(client);
+            ClientData tempClientData = GameData.blueTeamData.AddNewClient(client);
+            tempClientData.LGadget1 = lgadget1;
+            tempClientData.LGadget2 = lgadget2;
+            tempClientData.HGadget1 = hgadget1;
+            tempClientData.HGadget2 = hgadget2;
+            tempClientData.gadgets = new Gadget[4] { hgadget1, hgadget2, lgadget1, lgadget2 };
+            string id = tempClientData.playerId;
             Debug.Log("blue client added to game data");
             SimpleMessage msg = new SimpleMessage(MessageType.PlayerData, "");
             msg.playerId = id;
             Debug.Log("blue:"+id);
             msg.team = team;
+            msg.stringArrData = new string[] { hg1,hg2, lg1,lg2 };
             this.SendMessage(client, msg);
         }
         else if (team == "red")
         {
             Debug.Log("red");
-            string id = GameData.redTeamData.AddNewClient(client);
+            ClientData tempClientData = GameData.redTeamData.AddNewClient(client);
+            tempClientData.LGadget1 = lgadget1;
+            tempClientData.HGadget1 = hgadget1;
+            tempClientData.HGadget1 = hgadget1;
+            tempClientData.HGadget2 = hgadget2;
+            tempClientData.gadgets = new Gadget[4] { hgadget1, hgadget2, lgadget1, lgadget2 };
+            string id = tempClientData.playerId;
             Debug.Log("red client added to game data");
             SimpleMessage msg = new SimpleMessage(MessageType.PlayerData, "");
             msg.playerId = id;
             msg.team = team;
+            msg.stringArrData = new string[] { hg1, hg2, lg1, lg2 };
             Debug.Log("red:" + id);
             this.SendMessage(client, msg);
         }
@@ -728,6 +829,7 @@ public class NetworkServer
             //msg.floatArrData = sp;
             TcpClient tcpClient=clientData.Value.tcpClient;
             GameObject character=GameObject.Instantiate(server.characterPrefab, new Vector3(sp[0], sp[1], sp[2]), Quaternion.identity);
+            character.GetComponent<CharacterData>().playerId = clientData.Key;
             //clientData.Value.character = character;
             GameData.blueTeamData.clientsData[clientData.Value.playerId].character = character;
             //SendMessage(tcpClient, msg);
@@ -745,6 +847,7 @@ public class NetworkServer
             //msg.floatArrData = sp;
             TcpClient tcpClient = clientData.Value.tcpClient;
             GameObject character = GameObject.Instantiate(server.characterPrefab, new Vector3(sp[0], sp[1], sp[2]), Quaternion.identity);
+            character.GetComponent<CharacterData>().playerId = clientData.Key;
             //clientData.Value.character = character;
             GameData.redTeamData.clientsData[clientData.Value.playerId].character=character;
             //SendMessage(tcpClient, msg);
