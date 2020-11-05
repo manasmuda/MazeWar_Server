@@ -6,16 +6,15 @@ public class GameHistory
 {
 
     public static LinkedList<GameState> gameStates = new LinkedList<GameState>();
-    public static LinkedList<int> gameStateTicks = new LinkedList<int>();
 
     public static GameState recentState;
-    public static int recentTick;
+
 
     public static int size = 10;
 
     public static GameState GetPredictedState(int tick)
     {
-        if (tick > recentTick)
+        if (tick > recentState.tick)
         {
             //Debug.Log("Prediction creation started");
             GameState state=new GameState(recentState);
@@ -42,35 +41,31 @@ public class GameHistory
                     state.blueTeamState[i].position[2] = state.blueTeamState[i].position[2] + dist * Mathf.Sin(ay);
                 }
             }*/
-            AddGameState(state, tick);
+            AddGameState(state);
             //Debug.Log("Prediction State Created");
         }
         return recentState;
     }
     
-    public static void AddGameState(GameState state,int tick)
+    public static void AddGameState(GameState state)
     {
             if (size == gameStates.Count)
             {
                 gameStates.RemoveFirst();
-                gameStateTicks.RemoveFirst();
             }
             gameStates.AddLast(state);
-            gameStateTicks.AddLast(tick);
             recentState = state;
-            recentTick = tick;
             //Debug.Log("Game State Added");
-
     }
 
     public static int CheckClientState(ClientState state)
     {
-        Debug.Log(state.playerId+":"+state.tick + ":" + recentTick);
-        if (state.tick < recentTick - size)
+        //Debug.Log(state.playerId+":"+state.tick + ":" + recentState.tick);
+        if (state.tick < recentState.tick - size)
         {
             return -1;
         }
-        else if (state.tick >= recentTick)
+        else if (state.tick == recentState.tick || state.tick-recentState.tick==1) 
         {
             //Debug.Log("tick matched");
             if (state.team == "blue")
@@ -86,15 +81,13 @@ public class GameHistory
                 recentState.redTeamState[state.playerId] = tempState;
             }
             return 2;
-
         }
         else
         {
             LinkedListNode<GameState> gsn = gameStates.First;
-            LinkedListNode<int> gtn = gameStateTicks.First;
-            while(gsn!=null && gtn != null)
+            while(gsn!=null)
             {
-                if (gtn.Value == state.tick)
+                if (gsn.Value.tick == state.tick)
                 {
                     if (state.team == "blue")
                     {
@@ -143,7 +136,6 @@ public class GameHistory
                     
                 }
                 gsn = gsn.Next;
-                gtn = gtn.Next;
             }
         }
         return 5;
@@ -151,7 +143,7 @@ public class GameHistory
 
     public static LinkedListNode<GameState> GetGameState(int tick)
     {
-        if (tick > recentTick - 10 && tick<recentTick)
+        if (tick > recentState.tick - 10 && tick<recentState.tick)
         {
             bool found = false;
             LinkedListNode<GameState> cn = gameStates.Last;
@@ -176,6 +168,19 @@ public class GameHistory
         else
         {
             return null;
+        }
+    }
+
+    public static void AddAutoGadgetState(AutoGadgetState gadgetState,string team,string playerId)
+    {
+        gadgetState.tick = recentState.tick;
+        if (team == "blue")
+        {   
+            recentState.blueTeamState[playerId].autoGadgetStates.Add(gadgetState.id, gadgetState);
+        }
+        else
+        {
+            recentState.redTeamState[playerId].autoGadgetStates.Add(gadgetState.id, gadgetState);
         }
     }
 }

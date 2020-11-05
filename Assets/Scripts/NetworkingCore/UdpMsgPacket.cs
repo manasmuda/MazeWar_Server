@@ -22,7 +22,7 @@ public class UdpMsgPacket
     {
         this.type = type;
         this.message = message;
-        this.time = DateTime.UtcNow.Millisecond;
+        this.time = DateTime.Now.Millisecond;
         this.playerId = playerId;
         this.team = team;
     }

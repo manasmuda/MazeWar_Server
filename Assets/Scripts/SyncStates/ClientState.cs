@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 [Serializable]
 public class ClientState
@@ -30,6 +31,13 @@ public class ClientState
     public int stateType;
     public bool movementPressed;
 
+    public bool timerGadgetUse;
+
+    public bool usingTimerGadget = false;
+    public TimerGadgetState TimerGadgetState;
+
+    public Dictionary<string,AutoGadgetState> autoGadgetStates; 
+
     public ClientState()
     {
 
@@ -55,9 +63,14 @@ public class ClientState
         stateType = state.stateType;
         movementPressed = state.movementPressed;
         crouch = state.crouch;
+        autoGadgetStates = new Dictionary<string, AutoGadgetState>();
+        for(int i = 0; i < state.autoGadgetStates.Count; i++)
+        {
+            autoGadgetStates.Add(state.autoGadgetStates.Keys.ElementAt(i), new AutoGadgetState(state.autoGadgetStates.Values.ElementAt(i)));
+        }
     }
 
-    public ClientState CompareAndCopy(ClientState newState)
+    public void CompareAndCopy(ClientState newState)
     {
         playerId = newState.playerId;
         team = newState.team;
@@ -89,8 +102,11 @@ public class ClientState
             bulletsLeft = newState.bulletsLeft;
         }
         reloadStartTick = newState.reloadStartTick;
-        
-        return this;
+
+        for (int i = 0; i < autoGadgetStates.Count; i++)
+        {
+            autoGadgetStates[autoGadgetStates.Keys.ElementAt(i)].CompareAndCopy(newState.autoGadgetStates.Values.ElementAt(i));
+        }
     }
 
     public bool CompareState(ClientState state)

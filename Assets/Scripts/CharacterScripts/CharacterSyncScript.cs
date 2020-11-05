@@ -110,6 +110,7 @@ public class CharacterSyncScript : MonoBehaviour
 
         if ((dist > 0.1 && dist < 5))
         {
+            Debug.Log(dist);
             IEnumerator newMover = MoveOverSecond(end);
             if (moveTime != null)
             {
@@ -201,7 +202,7 @@ public class CharacterSyncScript : MonoBehaviour
             }
             else
             {
-                Debug.Log("stopped");
+                Debug.Log("stopped 2");
                 isMoving = false;
                 movers.Clear();
                 anim.SetFloat("MoveX", 0);
@@ -212,7 +213,7 @@ public class CharacterSyncScript : MonoBehaviour
         }
         else
         {
-            Debug.Log("stopped");
+            Debug.Log("stopped 1");
             isMoving = false;
             movers.Clear();
             anim.SetFloat("MoveX", 0);

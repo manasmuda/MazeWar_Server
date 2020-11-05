@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
@@ -95,9 +96,10 @@ public class CoinCollectorBot : MonoBehaviour
     {
         //when coin is instantiated it needs to be a child of coinParent
         Coins = new List<Transform>();
+        //Transform[] list=coinParent.transform.GetComponentsInChildren<Transform>(false);
         for (int i = 0; i < coinParent.transform.childCount; i++)
         {
-            
+            if(coinParent.transform.GetChild(i).gameObject.activeSelf)
              Coins.Add(coinParent.transform.GetChild(i));
             //Debug.Log(i);
         }
@@ -114,15 +116,16 @@ public class CoinCollectorBot : MonoBehaviour
         {
             //need to make set active slower
 
-            //anim.SetTrigger("collect");
-
-            Destroy(other.gameObject);
-       
+            Coins.Remove(other.transform);
+            other.transform.gameObject.SetActive(false);
+            //Destroy(other.gameObject);
+            //send message to all players
+            SimpleMessage msg = new SimpleMessage(MessageType.CoinPicked);
+            msg.intData = other.GetComponent<Coins>().coinId;
+            Server.instance.server.TransmitMessage(msg);
             isSearching = false;
             isStanding = true;
             Invoke("ResetState", 2f);
         }
     }
-
-
 }

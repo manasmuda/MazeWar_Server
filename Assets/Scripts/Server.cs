@@ -17,7 +17,7 @@ public class Server : MonoBehaviour
     //We get events back from the NetworkServer through this static list
     public static List<SimpleMessage> messagesToProcess = new List<SimpleMessage>();
 
-    NetworkServer server;
+    public NetworkServer server;
 
     public int tick = 0;
     private float tickRate = 0.2f;
@@ -28,6 +28,16 @@ public class Server : MonoBehaviour
     public GameObject characterPrefab;
 
     public GameObject coinPrefab;
+
+    public static Server instance;
+
+    void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+        }
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -87,17 +97,6 @@ public class Server : MonoBehaviour
         }
     }
 
-    public void SendGameState()
-    {
-        //server.TransmitUdpMessage();
-        GameState gs = GameHistory.recentState;
-        UdpMsgPacket packet = new UdpMsgPacket(PacketType.GameState);
-        for(int i = 0; i < GameData.blueTeamData.clientsData.Count; i++)
-        {
-            
-        }
-    }
-
     public void StartTick()
     {
         tick = 0;
@@ -119,8 +118,16 @@ public class Server : MonoBehaviour
 
     IEnumerator StartLobbyTimer()
     {
-        yield return new WaitForSeconds(10);
-
+        Debug.Log("Time Scale:" + Time.timeScale);
+        Debug.Log("Lobby Timer Started");
+        float time = 0f;
+        while (time < 10f)
+        {
+            yield return new WaitForSeconds(2f);
+            time = time + 2f;
+            Debug.Log("Lobby waited for " + time + " seconds and time scale is "+Time.timeScale+" and time is "+Time.realtimeSinceStartup);
+        }
+        Debug.Log("Lobby Timer Ended");
         InitializeFirstGameState();
         StartTick();
         gameliftServer.StartGame();
@@ -129,6 +136,7 @@ public class Server : MonoBehaviour
 
     void InitializeFirstGameState()
     {
+        Debug.Log("GameInitializtion Started");
         GameState state = new GameState();
         state.tick = 0;
         state.stateType = 0;
@@ -145,6 +153,10 @@ public class Server : MonoBehaviour
             clientState.team = "blue";
             clientState.tick = 0;
             clientState.stateType = 0;
+            clientState.health = 100;
+            clientState.coinsHolding = 0;
+            clientState.tracersRemaining = 2;
+            clientState.bulletsLeft = 10;
             state.blueTeamState.Add(data.Key,clientState);
         }
         foreach (KeyValuePair<string, ClientData> data in GameData.redTeamData.clientsData)
@@ -160,9 +172,13 @@ public class Server : MonoBehaviour
             clientState.team = "red";
             clientState.tick = 0;
             clientState.stateType = 0;
+            clientState.health = 100;
+            clientState.coinsHolding = 0;
+            clientState.tracersRemaining = 2;
+            clientState.bulletsLeft = 10;
             state.redTeamState.Add(data.Key,clientState);
         }
-        GameHistory.AddGameState(state, 0);
+        GameHistory.AddGameState(state);
         Debug.Log("Initial State Added");
     }
 
@@ -410,7 +426,7 @@ public class NetworkServer
 	}
 
     //Transmit message to multiple clients
-	private void TransmitMessage(SimpleMessage msg, TcpClient excludeClient = null)
+	public void TransmitMessage(SimpleMessage msg, TcpClient excludeClient = null)
 	{
         // send the same message to all players
         foreach (var client in this.clients)
@@ -474,7 +490,7 @@ public class NetworkServer
         }
         else if (msg.messageType == MessageType.GadgetCallAction)
         {
-            
+            HandleGadgetCallAction(msg);
         }
 
         return false;
@@ -527,10 +543,17 @@ public class NetworkServer
             Gadget gadget = clientData.gadgets[msg.intData];
             if (gadget.CanCall())
             {
-                gadget.CallAction();
                 SimpleMessage message = new SimpleMessage(MessageType.GadgetCallAction);
                 message.intData = msg.intData;
+                message.stringArrData = msg.stringArrData;
+                gadget.CallAction(message);
                 SendMessage(clientData.tcpClient, message);
+                SimpleMessage message1 = new SimpleMessage(MessageType.GadgetCallAction);
+                message1.stringData = gadget.gname;
+                message1.stringArrData = new string[3] { msg.stringArrData[0], msg.stringArrData[1], message.stringData };
+                message.floatArrData = new float[3] { gadget.character.transform.position.x, gadget.character.transform.position.x, gadget.character.transform.position.x };
+                TransmitMessage(message1, clientData.tcpClient);
+                //Send to other players for spawn
             }
         }
         else if (msg.stringArrData[1] == "red")
@@ -539,10 +562,17 @@ public class NetworkServer
             Gadget gadget = clientData.gadgets[msg.intData];
             if (gadget.CanCall())
             {
-                gadget.CallAction();
                 SimpleMessage message = new SimpleMessage(MessageType.GadgetCallAction);
                 message.intData = msg.intData;
+                message.stringArrData = msg.stringArrData;
+                gadget.CallAction(message);
                 SendMessage(clientData.tcpClient, message);
+                SimpleMessage message1 = new SimpleMessage(MessageType.GadgetCallAction);
+                message1.stringData = gadget.gname;
+                message1.stringArrData = new string[3] { msg.stringArrData[0], msg.stringArrData[1], message.stringData };
+                message.floatArrData = new float[3] { gadget.character.transform.position.x, gadget.character.transform.position.x, gadget.character.transform.position.x };
+                TransmitMessage(message1, clientData.tcpClient);
+                //Send to other players for spawn
             }
         }
     }
@@ -552,7 +582,7 @@ public class NetworkServer
         ClientState state = packet.clientState;
         if (server.tick - state.tick < 5)
         {
-            Debug.Log("Shoot Action: Shoot Tick Accepted");
+            Debug.Log("Shoot Action: Shoot Tick Accepted "+server.tick);
             LinkedListNode<GameState> llnGState = GameHistory.GetGameState(state.tick);
             if (llnGState != null)
             {
@@ -594,6 +624,7 @@ public class NetworkServer
                 }
                 if (shooterClientState != null)
                 {
+                    Debug.Log("Shoot Action: shooterClientState is not null");
                     if (shooterClientState.bulletsLeft > 0)
                     {
                         Debug.Log("Shoot Action: Shot Started");
@@ -630,6 +661,10 @@ public class NetworkServer
                         }
                     }
                 }
+                else
+                {
+                    Debug.Log("Shoot Action: shooterClientState is null");
+                }
                 UdpMsgPacket msgPacket = new UdpMsgPacket(PacketType.Shoot, "", "", "");
                 msgPacket.gameState = gState;
                 msgPacket.clientState = state;
@@ -649,9 +684,12 @@ public class NetworkServer
 
     private void HandleClientState(UdpMsgPacket packet)
     {
-        //if(packet.clientState.tick>)
         //Debug.Log(packet.clientState.tick + "," + server.tick);
         int us = GameHistory.CheckClientState(packet.clientState);
+        if (server.tick % 23 == 0)
+        {
+            Debug.Log(packet.playerId + " server tick: " + packet.clientState.tick + "," + server.tick);
+        }
         //Debug.Log(us);
         //Debug.Log(packet.clientState.position[0] + "," + packet.clientState.position[1] + "," + packet.clientState.position[2]);
         /*if (us==0)
@@ -747,30 +785,22 @@ public class NetworkServer
         {
             Debug.Log("blue");
             ClientData tempClientData = GameData.blueTeamData.AddNewClient(client);
-            tempClientData.LGadget1 = lgadget1;
-            tempClientData.LGadget2 = lgadget2;
-            tempClientData.HGadget1 = hgadget1;
-            tempClientData.HGadget2 = hgadget2;
-            tempClientData.gadgets = new Gadget[4] { hgadget1, hgadget2, lgadget1, lgadget2 };
             string id = tempClientData.playerId;
+            tempClientData.AddGadgets(hgadget1, hgadget2, lgadget1, lgadget2);
             Debug.Log("blue client added to game data");
             SimpleMessage msg = new SimpleMessage(MessageType.PlayerData, "");
             msg.playerId = id;
-            Debug.Log("blue:"+id);
             msg.team = team;
             msg.stringArrData = new string[] { hg1,hg2, lg1,lg2 };
+            Debug.Log("blue:" + id);
             this.SendMessage(client, msg);
         }
         else if (team == "red")
         {
             Debug.Log("red");
             ClientData tempClientData = GameData.redTeamData.AddNewClient(client);
-            tempClientData.LGadget1 = lgadget1;
-            tempClientData.HGadget1 = hgadget1;
-            tempClientData.HGadget1 = hgadget1;
-            tempClientData.HGadget2 = hgadget2;
-            tempClientData.gadgets = new Gadget[4] { hgadget1, hgadget2, lgadget1, lgadget2 };
             string id = tempClientData.playerId;
+            tempClientData.AddGadgets(hgadget1, hgadget2, lgadget1, lgadget2);
             Debug.Log("red client added to game data");
             SimpleMessage msg = new SimpleMessage(MessageType.PlayerData, "");
             msg.playerId = id;

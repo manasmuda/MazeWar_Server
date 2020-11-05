@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class Gadget : MonoBehaviour
 {
+    public string playerId;
+    public string team;
+
+    public string gname;
+    public string gsname;
     public bool lethal;
     public int damage;
     public int health;
@@ -12,7 +17,8 @@ public class Gadget : MonoBehaviour
     public bool mapChange;
     public int reloadTime;
     public int useLimit;
-    
+    public bool timerGadget;
+    public int useTime;
     public GameObject gadetPrefab;
     public GameObject character;
 
@@ -46,7 +52,7 @@ public class Gadget : MonoBehaviour
         return useLimit > 0 && enable;
     }
 
-    public virtual void CallAction()
+    public virtual void CallAction(SimpleMessage message=null)
     {
         if (useLimit == 0)
             return;

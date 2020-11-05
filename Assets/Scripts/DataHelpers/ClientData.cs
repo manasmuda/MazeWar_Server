@@ -8,6 +8,8 @@ public class ClientData
 {
 
     public string playerId;
+    public string team;
+
     public string name;
     public int level;
     public Texture2D playerImage;
@@ -47,5 +49,16 @@ public class ClientData
         damage = 10 + (level - 1) * 2;
     }
 
-    
+    public void AddGadgets(Gadget hgadget1,Gadget hgadget2,Gadget lgadget1,Gadget lgadget2)
+    {
+        gadgets = new Gadget[4] { hgadget1, hgadget2, lgadget1, lgadget2 };
+        gadgets[0].playerId = playerId;
+        gadgets[0].team = team;
+        gadgets[1].playerId = playerId;
+        gadgets[1].team = team;
+        gadgets[2].playerId = playerId;
+        gadgets[2].team = team;
+        gadgets[3].playerId = playerId;
+        gadgets[3].team = team;
+    }
 }

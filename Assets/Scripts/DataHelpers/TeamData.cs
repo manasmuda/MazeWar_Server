@@ -28,6 +28,7 @@ public class TeamData
         //Debug.Log("Adding new cliernt");
         //string newId = "123";
         ClientData clientData = new ClientData(newId,tcpClient);
+        clientData.team = team;
         clientsData.Add(newId, clientData);
         return clientData;
     }

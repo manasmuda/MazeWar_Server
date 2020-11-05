@@ -59,7 +59,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 4874126678125670354, guid: 0bbb530eb90936b46a662afca6adb761, type: 3}
+  - {fileID: 2100000, guid: 83e3638a5052562419ca9fb36f8c021f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -96,7 +96,7 @@ GameObject:
   - component: {fileID: 3547580833465377098}
   - component: {fileID: 3547580833465377099}
   m_Layer: 8
-  m_Name: ShootingBot_red
+  m_Name: ShootingBot
   m_TagString: Bot
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -206,7 +206,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0c40088efb46ac4a9345338d08bef78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  team: blue
+  team: red
   playerID: 0
   botId: 
   botHealth: 0
@@ -537,9 +537,9 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -876546973899608171, guid: 0bbb530eb90936b46a662afca6adb761, type: 3}
-  - {fileID: 5536123062436096700, guid: 0bbb530eb90936b46a662afca6adb761, type: 3}
-  - {fileID: -6478536213147159724, guid: 0bbb530eb90936b46a662afca6adb761, type: 3}
+  - {fileID: 2100000, guid: 83e3638a5052562419ca9fb36f8c021f, type: 2}
+  - {fileID: 2100000, guid: 83e3638a5052562419ca9fb36f8c021f, type: 2}
+  - {fileID: 2100000, guid: 83e3638a5052562419ca9fb36f8c021f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

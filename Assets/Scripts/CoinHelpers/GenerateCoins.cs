@@ -82,6 +82,7 @@ public class GenerateCoins
         GameObject[] coinObjects = new GameObject[coinCount];
         for (int i = 0; i < coinPos.Length; i++) {
             coinObjects[i]= GameObject.Instantiate(coinPrefab,coinPos[i],Quaternion.identity,coinsParent.transform);
+            coinObjects[i].GetComponent<Coins>().coinId = i;
         }
         GameData.coinObjects = coinObjects;
     }

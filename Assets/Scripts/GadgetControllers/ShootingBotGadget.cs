@@ -17,7 +17,9 @@ public class ShootingBotGadget : Gadget
         mapChange = true;
         reloadTime = 60;
         useLimit = 5;
-        //load prefab
+        timerGadget = false;
+        useTime = 0;
+        gadetPrefab = Resources.Load<GameObject>("Gadgets/Bots/ShootingBot");
     }
 
     protected override void Start()
@@ -32,7 +34,7 @@ public class ShootingBotGadget : Gadget
         base.Update();
     }
 
-    public override void CallAction()
+    public override void CallAction(SimpleMessage message=null)
     {
         base.CallAction();
         GameObject gadgetObject = Instantiate(gadetPrefab, character.transform.position, Quaternion.identity);

@@ -1660,9 +1660,9 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -6922793697723135513, guid: a2c1ff385cc2f3a47ae653a357bb5f06, type: 3}
-  - {fileID: -8392538173595082402, guid: a2c1ff385cc2f3a47ae653a357bb5f06, type: 3}
-  - {fileID: -6629797300637803691, guid: a2c1ff385cc2f3a47ae653a357bb5f06, type: 3}
+  - {fileID: 2100000, guid: 83e3638a5052562419ca9fb36f8c021f, type: 2}
+  - {fileID: 2100000, guid: 83e3638a5052562419ca9fb36f8c021f, type: 2}
+  - {fileID: 2100000, guid: 83e3638a5052562419ca9fb36f8c021f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2016,7 +2016,7 @@ GameObject:
   - component: {fileID: 353122531107942101}
   - component: {fileID: 5474948065674939825}
   m_Layer: 8
-  m_Name: CoinCollectorBot_blue
+  m_Name: CoinCollectorBot
   m_TagString: Bot
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2062,7 +2062,7 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9093714943513199364}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 1.3487091, y: 5.0495315, z: 1}

@@ -47,6 +47,7 @@ public class MeshCombiner : MonoBehaviour
                 combines[j].Add(combine);
             }
             meshFilters[i].mesh=null;
+            Destroy(meshFilters[i].transform.GetComponent<BoxCollider>());
             Destroy(meshFilters[i].transform.GetComponent<MeshRenderer>());
             Destroy(meshFilters[i]);
             i++;
@@ -62,13 +63,15 @@ public class MeshCombiner : MonoBehaviour
             finalCombines[j].mesh = meshes[j];
             finalCombines[j].subMeshIndex = 0;
             finalCombines[j].transform = Matrix4x4.TRS(transform.position,transform.rotation,transform.localScale);
-            
         }
         transform.GetComponent<MeshFilter>().mesh = new Mesh();
         transform.GetComponent<MeshFilter>().mesh.indexFormat = IndexFormat.UInt32;
         transform.GetComponent<MeshFilter>().mesh.CombineMeshes(finalCombines,false);
         transform.GetComponent<MeshRenderer>().materials = materials.ToArray();
         transform.gameObject.SetActive(true);
+        gameObject.AddComponent<MeshCollider>().sharedMesh=transform.GetComponent<MeshFilter>().sharedMesh;
+       // gameObject.GetComponent<MeshCollider>().convex = true;
+
         /*myMeshFilter = GetComponent<MeshFilter>();
         MeshFilter[] filters = GetComponentsInChildren<MeshFilter>(false);
 

@@ -18,7 +18,8 @@ public enum MessageType
     TeamData,
     PlayerGameReady,
     ServerTick,
-    GadgetCallAction
+    GadgetCallAction,
+    CoinPicked
 };
 
 
@@ -33,7 +34,7 @@ public class SimpleMessage
         this.listData = new List<object> { };
         this.dictData = new Dictionary<string, object> { };
         this.listdictdata = new List<Dictionary<string, object>> { };
-        this.time = DateTime.UtcNow.Millisecond;
+        this.time = DateTime.Now.Millisecond;
     }
 
     public MessageType messageType { get; set; }
