@@ -3,13 +3,9 @@ using System.Net.Sockets;
 using UnityEngine;
 using Aws.GameLift.Server;
 using System;
-using System.Threading;
 using System.Collections.Generic;
 using System.Collections;
-using System.Text;
-using System.Reflection;
 using System.Linq;
-
 // *** MONOBEHAVIOUR TO MANAGE SERVER LOGIC *** //
 
 public class Server : MonoBehaviour

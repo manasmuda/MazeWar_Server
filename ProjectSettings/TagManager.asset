@@ -4,8 +4,9 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Coin
   - Bot
+  - Bullet
+  - Coin
   layers:
   - Default
   - TransparentFX
@@ -15,8 +16,8 @@ TagManager:
   - UI
   - 
   - 
-  - Bot
-  - Coin
+  - 
+  - 
   - 
   - 
   - 

@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class MazeController : MonoBehaviour
 {
@@ -11,10 +9,10 @@ public class MazeController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        MazeCell[,] maze = MazeGenerator.generateMaze();
-        GameData.maze = maze;
-        InstantiateMaze(maze);
-        GetComponent<MeshCombiner>().enabled = true;
+       // MazeCell[,] maze = MazeGenerator.generateMaze();
+        //GameData.maze = maze;
+        //InstantiateMaze(maze);
+        //GetComponent<MeshCombiner>().enabled = true;
         //GameObject.Find("Cube2").GetComponent<TestEditor>().StartIt();
     }
 
